@@ -1,0 +1,24 @@
+format ELF
+include "../../../FreeBSD.fasm"
+
+section '.text' executable
+public _start
+_start:	
+	nop
+	pushd	msg_len
+	pushd	msg
+	pushd	STDOUT
+	mov	eax,SYS_WRITE
+	pushd	eax
+	int	0x80
+	add	esp,4*3		; clear stack after interupt
+
+	pushd	EXIT_SUCCESS
+	mov	eax,SYS_EXIT
+	int	0x80
+
+section '.data' writeable
+msg 		db	"Hello world",0xA
+msg_len 	=	$-msg
+
+; vim: set ts=8 sw=8 syntax=fasm:

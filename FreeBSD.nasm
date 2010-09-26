@@ -743,4 +743,76 @@ SEEK_SET	equ 0	; set file offset to offset
 SEEK_CUR	equ 1	; set file offset to current plus offset
 SEEK_END	equ 2	; set file offset to EOF plus offset
 
+;===========================================
+; Kernel encoding of open mode; separate read and write bits that are
+; independently testable: 1 greater than the above.
+O_RDONLY	equ 0x0000	; open for reading only
+O_WRONLY	equ 0x0001	; open for writing only
+O_RDRW		equ 0x0002	; open for reading and writing
+O_ACCMODE	equ 0x0003	; mask for above modes
+O_NONBLOCK	equ 0x0004	; no delay
+O_APPEND	equ 0x0008	; set append mode
+O_SHLOCK	equ 0x0010	; open with shared file lock
+O_EXLOCK	equ 0x0020	; open with exclusive file lock
+O_ASYNC		equ 0x0040	; signal pgrp when data ready
+O_FSYNC		equ 0x0080	; synchronous writes
+O_SYNC		equ 0x0080	; POSIX synonym for O_FSYNC
+O_NOFOLLOW	equ 0x0100	; don't follow symlinks
+O_CREAT		equ 0x0200	; create if nonexistent
+O_TRUNC		equ 0x0400	; truncate to zero length
+O_EXCL		equ 0x0800	; error if already exists
+O_NOCTTY	equ 0x8000	; don't assign controlling terminal
+O_DIRECT	equ 0x00010000	; Attempt to bypass buffer cache
+O_DIRECTORY	equ 0x00020000	; Fail if not directory
+O_EXEC		equ 0x00040000	; Open for execute only
+O_TTY_INIT	equ 0x00080000	; Restore default termios attributes
+
+;=========================================
+; flags for *at() syscalls
+AT_FDCWD		equ -100	; Magic value that specify the use of the current working directory to determine the target of relative file paths in the openat() and similar syscalls
+AT_EACCESS		equ 0x100	; Check access using effective user and group ID
+AT_SYMLINK_NOFOLLOW	equ 0x200	; Do not follow symbolic links
+AT_SYMLINK_FOLLOW	equ 0x400	; Follow symbolic link
+AT_REMOVEDIR		equ 0x800	; Remove directory instead of file
+
+;=========================================
+; constants used by fcntl
+F_DUPFD		equ 0	; duplicate file descriptor
+F_GETFD		equ 1	; get file descriptor flags
+F_SETFD		equ 2	; set file descriptor flags
+F_GETFL		equ 3	; get file status flags
+F_SETFL		equ 4	; set file status flags
+F_GETOW		equ 5	; get SIGIO/SIGURG proc/pgrp
+F_SETOW		equ 6	; set SIGIO/SIGURG proc/pgrp
+F_OGETL		equ 7	; get record locking information
+F_OSETL		equ 8	; set record locking information
+F_OSETLK	equ 9	; F_SETLK; wait if blocked
+F_DUP2F		equ 10	; duplicate file descriptor to arg
+F_GETL		equ 11	; get record locking information
+F_SETL		equ 12	; set record locking information
+F_SETLK		equ 13	; F_SETLK; wait if blocked
+F_SETLK_REMOT	equ 14	; debugging support for remote locks
+F_READAHEA	equ 15	; read ahead
+F_RDAHEA	equ 16	; Darwin compatible read ahead
+
+;============================================
+; file descriptor flags (F_GETFD, F_SETFD)
+FD_CLOEXEC	equ 1	; close-on-exec flag
+
+;===========================================
+; record locking flags (F_GETLK, F_SETLK, F_SETLKW)
+F_RDLCK		equ 1	; shared or read lock
+F_UNLCK		equ 2	; unlock
+F_WRLCK		equ 3	; exclusive or write lock
+F_UNLCKSYS	equ 4	; purge locks for a given system ID
+F_CANCEL	equ 5	; cancel an async lock request
+
+;==========================================
+; lock operations for flock(2)
+LOCK_SH		equ 0x01	; shared file lock
+LOCK_EX		equ 0x02	; exclusive file lock
+LOCK_NB		equ 0x04	; don't block when locking
+LOCK_UN		equ 0x08	; unlock file
+
+
 ; vim: set ts=8 sw=8 nowrap syntax=nasm:
