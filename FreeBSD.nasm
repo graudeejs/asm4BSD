@@ -777,23 +777,23 @@ AT_REMOVEDIR		equ 0x800	; Remove directory instead of file
 
 ;=========================================
 ; constants used by fcntl
-F_DUPFD		equ 0	; duplicate file descriptor
-F_GETFD		equ 1	; get file descriptor flags
-F_SETFD		equ 2	; set file descriptor flags
-F_GETFL		equ 3	; get file status flags
-F_SETFL		equ 4	; set file status flags
-F_GETOW		equ 5	; get SIGIO/SIGURG proc/pgrp
-F_SETOW		equ 6	; set SIGIO/SIGURG proc/pgrp
-F_OGETL		equ 7	; get record locking information
-F_OSETL		equ 8	; set record locking information
-F_OSETLK	equ 9	; F_SETLK; wait if blocked
-F_DUP2F		equ 10	; duplicate file descriptor to arg
-F_GETL		equ 11	; get record locking information
-F_SETL		equ 12	; set record locking information
-F_SETLK		equ 13	; F_SETLK; wait if blocked
-F_SETLK_REMOT	equ 14	; debugging support for remote locks
-F_READAHEA	equ 15	; read ahead
-F_RDAHEA	equ 16	; Darwin compatible read ahead
+F_DUPFD		equ 0  ; duplicate file descriptor
+F_GETFD		equ 1  ; get file descriptor flags
+F_SETFD		equ 2  ; set file descriptor flags
+F_GETFL		equ 3  ; get file status flags
+F_SETFL		equ 4  ; set file status flags
+F_GETOW		equ 5  ; get SIGIO/SIGURG proc/pgrp
+F_SETOW		equ 6  ; set SIGIO/SIGURG proc/pgrp
+F_OGETL		equ 7  ; get record locking information
+F_OSETL		equ 8  ; set record locking information
+F_OSETLK	equ 9  ; F_SETLK; wait if blocked
+F_DUP2F		equ 10 ; duplicate file descriptor to arg
+F_GETL		equ 11 ; get record locking information
+F_SETL		equ 12 ; set record locking information
+F_SETLK		equ 13 ; F_SETLK; wait if blocked
+F_SETLK_REMOT	equ 14 ; debugging support for remote locks
+F_READAHEA	equ 15 ; read ahead
+F_RDAHEA	equ 16 ; Darwin compatible read ahead
 
 ;============================================
 ; file descriptor flags (F_GETFD, F_SETFD)
@@ -801,18 +801,44 @@ FD_CLOEXEC	equ 1	; close-on-exec flag
 
 ;===========================================
 ; record locking flags (F_GETLK, F_SETLK, F_SETLKW)
-F_RDLCK		equ 1	; shared or read lock
-F_UNLCK		equ 2	; unlock
-F_WRLCK		equ 3	; exclusive or write lock
-F_UNLCKSYS	equ 4	; purge locks for a given system ID
-F_CANCEL	equ 5	; cancel an async lock request
+F_RDLCK		equ 1 ; shared or read lock
+F_UNLCK		equ 2 ; unlock
+F_WRLCK		equ 3 ; exclusive or write lock
+F_UNLCKSYS	equ 4 ; purge locks for a given system ID
+F_CANCEL	equ 5 ; cancel an async lock request
 
 ;==========================================
 ; lock operations for flock(2)
-LOCK_SH		equ 0x01	; shared file lock
-LOCK_EX		equ 0x02	; exclusive file lock
-LOCK_NB		equ 0x04	; don't block when locking
-LOCK_UN		equ 0x08	; unlock file
+LOCK_SH		equ 0x1	; shared file lock
+LOCK_EX		equ 0x2	; exclusive file lock
+LOCK_NB		equ 0x4	; don't block when locking
+LOCK_UN		equ 0x8	; unlock file
 
+;==========================================
+; mmap(2) from sys/mman.h
+PROT_NONE	equ 0x00 ; no permissions
+PROT_READ	equ 0x01 ; pages can be read
+PROT_WRITE	equ 0x02 ; pages can be written
+PROT_EXEC	equ 0x04 ; pages can be executed
+
+; Flags contain sharing type and options.
+; Sharing types; choose one.
+MAP_SHARED		equ 0x0001	; share changes
+MAP_PRIVATE		equ 0x0002	; changes are private
+;MAP_COPY		equ MAP_PRIVATE	; OBSOLETE
+; Other flags
+MAP_FIXED		equ 0x0010	; map addr must be exactly as requested
+MAP_RENAME		equ 0x0020	; Sun: rename private pages to file
+MAP_NORESERVE		equ 0x0040	; Sun: don't reserve needed swap area
+MAP_RESERVED0080	equ 0x0080	; previously misimplemented MAP_INHERIT
+MAP_RESERVED0100	equ 0x0100	; previously unimplemented MAP_NOEXTEND
+MAP_HASSEMAPHORE	equ 0x0200	; region may contain semaphores
+MAP_STACK		equ 0x0400	; region grows down, like a stack
+MAP_NOSYNC		equ 0x0800	; page to but do not sync underlying file
+; Mapping type
+MAP_FILE		equ 0x0000	; map from file (default)
+MAP_ANON		equ 0x1000	; allocated from memory, swap space
+; Extended flags
+MAP_NOCORE		equ 0x00020000  ; dont include these pages in a coredump
 
 ; vim: set ts=8 sw=8 nowrap syntax=nasm:

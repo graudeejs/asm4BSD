@@ -1,1 +1,2 @@
-Edit FreeBSD.nasm and convert to FreeBSD.fasm
+Edit FreeBSD.nasm
+run make to convert FreeBSD.fasm to FreeBSD.nasm

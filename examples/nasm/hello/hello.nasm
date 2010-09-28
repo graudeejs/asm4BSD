@@ -6,10 +6,10 @@ _start:
 	push	msg_len
 	push	msg
 	push	STDOUT
+	push	eax		; dummy argument
 	mov	eax,SYS_WRITE
-	push	eax
 	int	0x80
-	add	esp,4*3		; clear stack after interupt
+	add	esp,4*4		; clear stack after interupt
 
 	push	EXIT_SUCCESS
 	mov	eax,SYS_EXIT
