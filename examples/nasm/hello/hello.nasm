@@ -12,6 +12,7 @@ _start:
 	add	esp,4*4		; clear stack after interupt
 
 	push	EXIT_SUCCESS
+	push	eax		; dummy arg
 	mov	eax,SYS_EXIT
 	int	0x80
 
