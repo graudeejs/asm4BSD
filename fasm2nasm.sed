@@ -1,3 +1,4 @@
 s/^if defined/%ifdef/
 s/^end if/%endif/
-s/ syntax=nasm/ syntax=fasm/
+s/ syn=fasm/ syn=nasm/
+s/^else if defined/%elifdef/
