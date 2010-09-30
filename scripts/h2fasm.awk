@@ -10,9 +10,9 @@ BEGIN {
 	PRINT_COMMENTS=1	# print signle line comments
 	PRINT_STRUCTURES=1	# print structures (needs manual editing)
 	PRINT_DEFINITIONS=1	# print CONSTANTS
-	PRINT_IFS=1		# print if, else etc
+	PRINT_IFS=0		# print if, else etc
 	PRINT_EMTPY_LINES=1	# print empty lines (exept in structures)
-	PRINT_INCLUDES=1	# print which files are included form this header
+	PRINT_INCLUDES=0	# print which files are included form this header
 	PRINT_ENUM=1		# print enums
 	
 	DEBUG=0
@@ -51,14 +51,14 @@ PRINT_IFS == 1 && /#ifdef/ {
 }
 
 PRINT_IFS == 1 && /#ifndef/ {
-	$1="if not defined"
+	$1="if ~ defined"
 	DO_PRINT=1
 }
 
 PRINT_IFS == 1 && /#if/ {
 	gsub(/\|\|/, "or")
 	gsub(/\&\&/, "and")
-	gsub(/!/, "not ")
+	gsub(/!/, "~ ")
 	$1="if"
 	DO_PRINT=1
 }
@@ -110,10 +110,6 @@ DO_PRINT == 1 {
 }
 
 END {
-	print "\n;=========================================="
-	print "; Converted with h2fasm.awk script"
-	print "; http://aldis.git.bsdroot.lv/asm4FreeBSD/ "
-	print ";\n"
-	print "; vim: set ts=8 sw=8 syn=fasm:"
+	print "\n; vim: set ts=8 sw=8 syn=fasm:"
 
 }
