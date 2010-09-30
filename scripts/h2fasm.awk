@@ -73,6 +73,7 @@ PRINT_IFS == 1 && /#else/ {
 
 PRINT_INCLUDES == 1 && /#include/ {
 	$1=";include"
+	DO_PRINT=1
 }
 
 /\\$/ && DO_PRINT == 1 {
