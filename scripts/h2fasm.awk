@@ -12,12 +12,9 @@ BEGIN {
 	PRINT_DEFINITIONS=1	# print CONSTANTS
 	PRINT_IFS=1		# print if, else etc
 	PRINT_EMTPY_LINES=1	# print empty lines (exept in structures)
+	PRINT_INCLUDES=1	# pinrt withc files are included form this header
 	
 	DEBUG=0
-}
-
-/\/\*/ && /\*\// {
-	gsub(/\/\*.*\*\//, "")
 }
 
 PRINT_STRUCTURES == 1 && /struct/,/}/ {
@@ -26,24 +23,32 @@ PRINT_STRUCTURES == 1 && /struct/,/}/ {
 	DO_PRINT=1
 }
 
+PRINT_COMMENTS = 0 && /\/\*/ && /\*\// {
+	gsub(/\/\*.*\*\//, "")
+}
 
-/#define[ \t]*[A-Z0-9_]*/ && PRINT_DEFINITIONS == 1 {	# assume all constants use capitals
+PRINT_COMMENTS = 1 && /\/\*/ && /\*\// {
+	gsub(/\/\*/, ";")
+	gsub(/[ \t]*\*\/[ \t]*$/, "")
+}
+
+PRINT_DEFINITIONS == 1 && /#define[ \t]*[A-Z0-9_]*/ {	# assume all constants use capitals
 	$2=$2"=\t"
 	$1=""
 	DO_PRINT=1
 }
 
-/#ifdef/ && PRINT_IFS == 1 {
+PRINT_IFS == 1 && /#ifdef/ {
 	$1="if defined"
 	DO_PRINT=1
 }
 
-/#ifndef/ && PRINT_IFS == 1 {
+PRINT_IFS == 1 && /#ifndef/ {
 	$1="if not defined"
 	DO_PRINT=1
 }
 
-/#if/ && PRINT_IFS == 1 {
+PRINT_IFS == 1 && /#if/ {
 	gsub(/\|\|/, "or")
 	gsub(/\&\&/, "and")
 	gsub(/!/, "not ")
@@ -51,19 +56,23 @@ PRINT_STRUCTURES == 1 && /struct/,/}/ {
 	DO_PRINT=1
 }
 
-/#endif/ && PRINT_IFS == 1 {
+PRINT_IFS == 1 && /#endif/ {
 	$1="end if"
 	DO_PRINT=1
 }
 
-/#elif/ && PRINT_IFS == 1 {
+PRINT_IFS == 1 && /#elif/ {
 	$1="else if"
 	DO_PRINT=1
 }
 
-/#else/ && PRINT_IFS == 1 {
+PRINT_IFS == 1 && /#else/ {
 	$1="else"
 	DO_PRINT=1
+}
+
+PRINT_INCLUDES == 1 && /#include/ {
+	$1=";include"
 }
 
 /\\$/ && DO_PRINT == 1 {
