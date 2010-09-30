@@ -11,7 +11,7 @@ package FreeBSD_syscalls4fasm;
 use warnings;
 use strict;
 
-my $version = "1.0.1";
+my $version = "1.0.2";
 
 my $masterfile = "/usr/src/sys/kern/syscalls.master";
 
@@ -84,11 +84,13 @@ exit;
 sub process_syscall_line() {
 	my $pline = $_[0];
 	my ($number, $type, $name, $comment);
+	my $prefix = "SYS_";
 	
 	($number, $type, $comment, $name) = ($pline =~ m/^(\d+) \w+ (\w+).+\{ (.* (\w+) ??\(.*\);) ??\}/);
 	$name =~ tr/[a-z]/[A-Z]/;
-
-	print "\tSYS_$name\t= $number ; $comment\n";
+	
+	$prefix = "" if ($name =~ /^SYS_/);
+	print "\t$prefix$name\t= $number ; $comment\n";
 
 	die "ERR: seams like regex needs improvement\n" unless $name;
 }

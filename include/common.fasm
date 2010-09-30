@@ -1,0 +1,782 @@
+; This file contains various constants (but not all) from:
+;	* errno.h
+;	* fcntl.h
+;	* limits.h
+;	* stdlib.h
+;	* sys/mmap.h
+;	* sys/stat.h
+;	* sys/time.h
+;	* unistd.h
+; for more & precise info reffer to original files, as this file is stipped A LOT
+
+;XXXXXXXXXXXXXXXX
+;XXXXXXXXXXXXXXXX
+; errno.h
+;XXXXXXXXXXXXXXXX
+;XXXXXXXXXXXXXXXX
+EPERM=		1 ; Operation not permitted
+ENOENT=		2 ; No such file or directory
+ESRCH=		3 ; No such process
+EINTR=		4 ; Interrupted system call
+EIO=		5 ; Input/output error
+ENXIO=		6 ; Device not configured
+E2BIG=		7 ; Argument list too long
+ENOEXEC=	8 ; Exec format error
+EBADF=		9 ; Bad file descriptor
+ECHILD=		10 ; No child processes
+EDEADLK=	11 ; Resource deadlock avoided
+ENOMEM=		12 ; Cannot allocate memory
+EACCES=		13 ; Permission denied
+EFAULT=		14 ; Bad address
+ENOTBLK=	15 ; Block device required
+EBUSY=		16 ; Device busy
+EEXIST=		17 ; File exists
+EXDEV=		18 ; Cross-device link
+ENODEV=		19 ; Operation not supported by device
+ENOTDIR=	20 ; Not a directory
+EISDIR=		21 ; Is a directory
+EINVAL=		22 ; Invalid argument
+ENFILE=		23 ; Too many open files in system
+EMFILE=		24 ; Too many open files
+ENOTTY=		25 ; Inappropriate ioctl for device
+ETXTBSY=	26 ; Text file busy
+EFBIG=		27 ; File too large
+ENOSPC=		28 ; No space left on device
+ESPIPE=		29 ; Illegal seek
+EROFS=		30 ; Read-only filesystem
+EMLINK=		31 ; Too many links
+EPIPE=		32 ; Broken pipe
+EDOM=		33 ; Numerical argument out of domain
+ERANGE=		34 ; Result too large
+EAGAIN=		35 ; Resource temporarily unavailable
+EWOULDBLOCK=	EAGAIN ; Operation would block
+EINPROGRESS=	36 ; Operation now in progress
+EALREADY=	37 ; Operation already in progress
+ENOTSOCK=	38 ; Socket operation on non-socket
+EDESTADDRREQ=	39 ; Destination address required
+EMSGSIZE=	40 ; Message too long
+EPROTOTYPE=	41 ; Protocol wrong type for socket
+ENOPROTOOPT=	42 ; Protocol not available
+EPROTONOSUPPORT=43 ; Protocol not supported
+ESOCKTNOSUPPORT=44 ; Socket type not supported
+EOPNOTSUPP=	45 ; Operation not supported
+ENOTSUP=	EOPNOTSUPP ; Operation not supported
+EPFNOSUPPORT=	46 ; Protocol family not supported
+EAFNOSUPPORT=	47 ; Address family not supported by protocol family
+EADDRINUSE=	48 ; Address already in use
+EADDRNOTAVAIL=	49 ; Can't assign requested address
+ENETDOWN=	50 ; Network is down
+ENETUNREACH=	51 ; Network is unreachable
+ENETRESET=	52 ; Network dropped connection on reset
+ECONNABORTED=	53 ; Software caused connection abort
+ECONNRESET=	54 ; Connection reset by peer
+ENOBUFS=	55 ; No buffer space available
+EISCONN=	56 ; Socket is already connected
+ENOTCONN=	57 ; Socket is not connected
+ESHUTDOWN=	58 ; Can't send after socket shutdown
+ETOOMANYREFS=	59 ; Too many references: can't splice
+ETIMEDOUT=	60 ; Operation timed out
+ECONNREFUSED=	61 ; Connection refused
+ELOOP=		62 ; Too many levels of symbolic links
+ENAMETOOLONG=	63 ; File name too long
+EHOSTDOWN=	64 ; Host is down
+EHOSTUNREACH=	65 ; No route to host
+ENOTEMPTY=	66 ; Directory not empty
+EPROCLIM=	67 ; Too many processes
+EUSERS=		68 ; Too many users
+EDQUOT=		69 ; Disc quota exceeded
+ESTALE=		70 ; Stale NFS file handle
+EREMOTE=	71 ; Too many levels of remote in path
+EBADRPC=	72 ; RPC struct is bad
+ERPCMISMATCH=	73 ; RPC version wrong
+EPROGUNAVAIL=	74 ; RPC prog. not avail
+EPROGMISMATCH=	75 ; Program version wrong
+EPROCUNAVAIL=	76 ; Bad procedure for program
+ENOLCK=		77 ; No locks available
+ENOSYS=		78 ; Function not implemented
+EFTYPE=		79 ; Inappropriate file type or format
+EAUTH=		80 ; Authentication error
+ENEEDAUTH=	81 ; Need authenticator
+EIDRM=		82 ; Identifier removed
+ENOMSG=		83 ; No message of desired type
+EOVERFLOW=	84 ; Value too large to be stored in data type
+ECANCELED=	85 ; Operation canceled
+EILSEQ=		86 ; Illegal byte sequence
+ENOATTR=	87 ; Attribute not found
+EDOOFUS=	88 ; Programming error
+EBADMSG=	89 ; Bad message
+EMULTIHOP=	90 ; Multihop attempted
+ENOLINK=	91 ; Link has been severed
+EPROTO=		92 ; Protocol error
+ENOTCAPABLE=	93 ; Capabilities insufficient
+ELAST=		93 ; Must be equal largest errno
+ERESTART=	-1 ; restart syscall
+EJUSTRETURN=	-2 ; don't modify regs, just return
+ENOIOCTL=	-3 ; ioctl not handled by this layer
+EDIRIOCTL=	-4 ; do direct ioctl in GEOM
+
+
+;XXXXXXXXXXXXXXXX
+;XXXXXXXXXXXXXXXX
+; fcntl.h
+;XXXXXXXXXXXXXXXX
+;XXXXXXXXXXXXXXXX
+;
+; File status flags: these are used by open(2), fcntl(2).
+; They are also used (indirectly) in the kernel file structure f_flags,
+; which is a superset of the open/fcntl flags. Open flags and f_flags
+; are inter-convertible using OFLAGS(fflags) and FFLAGS(oflags).
+; Open/fcntl flags begin with O_ kernel-internal flags begin with F.
+;
+; open-only flags
+O_RDONLY=	0x0000 ; open for reading only
+O_WRONLY=	0x0001 ; open for writing only
+O_RDWR=		0x0002 ; open for reading and writing
+O_ACCMODE=	0x0003 ; mask for above modes
+
+;
+; Kernel encoding of open mode separate read and write bits that are
+; independently testable: 1 greater than the above.
+;
+; XXX
+; FREAD and FWRITE are excluded from the #ifdef _KERNEL so that TIOCFLUSH,
+; which was documented to use FREAD/FWRITE, continues to work.
+;
+FREAD=		0x0001
+FWRITE=		0x0002
+O_NONBLOCK=	0x0004 ; no delay
+O_APPEND=	0x0008 ; set append mode
+O_SHLOCK=	0x0010 ; open with shared file lock
+O_EXLOCK=	0x0020 ; open with exclusive file lock
+O_ASYNC=	0x0040 ; signal pgrp when data ready
+O_FSYNC=	0x0080 ; synchronous writes
+O_SYNC=		0x0080 ; POSIX synonym for O_FSYNC
+O_NOFOLLOW=	0x0100 ; don't follow symlinks
+O_CREAT=	0x0200 ; create if nonexistent
+O_TRUNC=	0x0400 ; truncate to zero length
+O_EXCL=		0x0800 ; error if already exists
+FHASLOCK=	0x4000 ; descriptor holds advisory lock
+
+; Defined by POSIX 1003.1  BSD default, but must be distinct from O_RDONLY.
+O_NOCTTY=	0x8000 ; don't assign controlling terminal
+
+; Attempt to bypass buffer cache
+O_DIRECT=	0x00010000
+
+; Defined by POSIX Extended API Set Part 2
+O_DIRECTORY=	0x00020000 ; Fail if not directory
+O_EXEC=		0x00040000 ; Open for execute only
+FEXEC=		O_EXEC
+
+; Defined by POSIX 1003.1-2008  BSD default, but reserve for future use.
+O_TTY_INIT=	0x00080000 ; Restore default termios attributes
+
+;
+; XXX missing O_DSYNC, O_RSYNC.
+;
+
+
+;=========== NOTE not sure these work correctly in fasm (haven't tested)
+; bits to save after open
+FMASK=		FREAD or FWRITE or FAPPEND or FASYNC or FFSYNC or FNONBLOCK or O_DIRECT or FEXEC
+; bits settable by fcntl(F_SETFL, ...)
+FCNTLFLAGS=	FAPPEND or FASYNC or FFSYNC or FNONBLOCK or FRDAHEAD or O_DIRECT
+
+; Set by shm_open(3) in older libc's to get automatic MAP_ASYNC
+; behavior for POSIX shared memory objects (which are otherwise
+; implemented as plain files).
+;
+FPOSIXSHM=	O_NOFOLLOW
+FCNTLFLAGS=	FAPPEND or FASYNC or FFSYNC or FNONBLOCK or FPOSIXSHM or FRDAHEAD or O_DIRECT
+
+
+; The O_* flags used to have only F* names, which were used in the kernel
+; and by fcntl. We retain the F* names for the kernel f_flag field
+; and for backward compatibility for fcntl. These flags are deprecated.
+;
+FAPPEND=	O_APPEND ; kernel/compat
+FASYNC=		O_ASYNC ; kernel/compat
+FFSYNC=		O_FSYNC ; kernel
+FNONBLOCK=	O_NONBLOCK ; kernel
+FNDELAY=	O_NONBLOCK ; compat
+O_NDELAY=	O_NONBLOCK ; compat
+
+;
+; We are out of bits in f_flag (which is a short). However,
+; the flag bits not set in FMASK are only meaningful in the
+; initial open syscall. Those bits can thus be given a
+; different meaning for fcntl(2).
+;
+; Read ahead
+FRDAHEAD=	O_CREAT
+
+; Defined by POSIX Extended API Set Part 2
+;
+; Magic value that specify the use of the current working directory
+; to determine the target of relative file paths in the openat() and
+; similar syscalls.
+;
+AT_FDCWD=	-100
+
+;
+; Miscellaneous flags for the *at() syscalls.
+;
+AT_EACCESS=		0x100 ; Check access using effective user and group ID
+AT_SYMLINK_NOFOLLOW=	0x200 ; Do not follow symbolic links
+AT_SYMLINK_FOLLOW=	0x400 ; Follow symbolic link
+AT_REMOVEDIR=		0x800 ; Remove directory instead of file
+
+;
+; Constants used for fcntl(2)
+;
+
+; command values
+F_DUPFD=	0 ; duplicate file descriptor
+F_GETFD=	1 ; get file descriptor flags
+F_SETFD=	2 ; set file descriptor flags
+F_GETFL=	3 ; get file status flags
+F_SETFL=	4 ; set file status flags
+F_GETOWN=	5 ; get SIGIO/SIGURG proc/pgrp
+F_SETOWN=	6 ; set SIGIO/SIGURG proc/pgrp
+F_OGETLK=	7 ; get record locking information
+F_OSETLK=	8 ; set record locking information
+F_OSETLKW=	9 ; F_SETLK wait if blocked
+F_DUP2FD=	10 ; duplicate file descriptor to arg
+F_GETLK=	11 ; get record locking information
+F_SETLK=	12 ; set record locking information
+F_SETLKW=	13 ; F_SETLK wait if blocked
+F_SETLK_REMOTE=	14 ; debugging support for remote locks
+F_READAHEAD=	15 ; read ahead
+F_RDAHEAD=	16 ; Darwin compatible read ahead
+
+; file descriptor flags (F_GETFD, F_SETFD)
+FD_CLOEXEC=	1 ; close-on-exec flag
+
+; record locking flags (F_GETLK, F_SETLK, F_SETLKW)
+F_RDLCK=	1 ; shared or read lock
+F_UNLCK=	2 ; unlock
+F_WRLCK=	3 ; exclusive or write lock
+F_UNLCKSYS=	4 ; purge locks for a given system ID
+F_CANCEL=	5 ; cancel an async lock request
+F_WAIT=		0x010 ; Wait until lock is granted
+F_FLOCK=	0x020 ; Use flock(2) semantics for lock
+F_POSIX=	0x040 ; Use POSIX semantics for lock
+F_REMOTE=	0x080 ; Lock owner is remote NFS client
+F_NOINTR=	0x100 ; Ignore signals when waiting
+
+;
+; Advisory file segment locking data type -
+; information passed to system by user
+;
+;struct flock {
+;	off_t	l_start 	; starting offset
+;	off_t	l_len 		; len = 0 means until end of file
+;	pid_t	l_pid 		; lock owner
+;	short	l_type 		; lock type: read/write, etc.
+;	short	l_whence 	; type of l_start
+;	int	l_sysid 	; remote system id or zero for local
+;}
+
+;
+; Old advisory file segment locking data type,
+; before adding l_sysid.
+;
+;struct oflock {
+;	off_t	l_start 	; starting offset
+;	off_t	l_len 		; len = 0 means until end of file
+;	pid_t	l_pid 		; lock owner
+;	short	l_type 		; lock type: read/write, etc.
+;	short	l_whence 	; type of l_start
+;}
+
+; lock operations for flock(2)
+LOCK_SH=	0x01 ; shared file lock
+LOCK_EX=	0x02 ; exclusive file lock
+LOCK_NB=	0x04 ; don't block when locking
+LOCK_UN=	0x08 ; unlock file
+
+;
+; XXX missing posix_fadvise() and posix_fallocate(), and POSIX_FADV_* macros.
+;
+
+
+;XXXXXXXXXXXXXXXX
+;XXXXXXXXXXXXXXXX
+; stdlib.h
+;XXXXXXXXXXXXXXXX
+;XXXXXXXXXXXXXXXX
+
+EXIT_FAILURE=	 1
+EXIT_SUCCESS=	 0
+
+RAND_MAX=	 0x7fffffff
+
+;MB_CUR_MAX=	 __mb_cur_max
+
+
+;XXXXXXXXXXXXXXXX
+;XXXXXXXXXXXXXXXX
+; unistd.h
+;XXXXXXXXXXXXXXXX
+;XXXXXXXXXXXXXXXX
+STDIN_FILENO=	0 ; standard input file descriptor
+STDOUT_FILENO=	1 ; standard output file descriptor
+STDERR_FILENO=	2 ; standard error file descriptor
+
+F_ULOCK=	0 ; unlock locked section
+F_LOCK=		1 ; lock a section for exclusive use
+F_TLOCK=	2 ; test and lock a section for exclusive use
+F_TEST=		3 ; test a section for locks by other procs
+
+;======== CUSTOM ======
+STDIN=	STDIN_FILENO
+STDOUT=	STDOUT_FILENO
+STDERR=	STDERR_FILENO
+
+;XXXXXXXXXXXXXXXX
+;XXXXXXXXXXXXXXXX
+; sys/mmap.h
+;XXXXXXXXXXXXXXXX
+;XXXXXXXXXXXXXXXX
+
+;
+; Inheritance for minherit()
+;
+INHERIT_SHARE=	0
+INHERIT_COPY=	1
+INHERIT_NONE=	2
+
+;
+; Protections are chosen from these bits, or-ed together
+;
+PROT_NONE=	0x00 ; no permissions
+PROT_READ=	0x01 ; pages can be read
+PROT_WRITE=	0x02 ; pages can be written
+PROT_EXEC=	0x04 ; pages can be executed
+
+;
+; Flags contain sharing type and options.
+; Sharing types; choose one.
+;
+MAP_SHARED=	0x0001 ; share changes
+MAP_PRIVATE=	0x0002 ; changes are private
+MAP_COPY=	MAP_PRIVATE ; Obsolete
+
+;
+; Other flags
+;
+MAP_FIXED=		0x0010 ; map addr must be exactly as requested
+
+MAP_RENAME=		0x0020 ; Sun: rename private pages to file
+MAP_NORESERVE=		0x0040 ; Sun: don't reserve needed swap area
+MAP_RESERVED0080=	0x0080 ; previously misimplemented MAP_INHERIT
+MAP_RESERVED0100=	0x0100 ; previously unimplemented MAP_NOEXTEND
+MAP_HASSEMAPHORE=	0x0200 ; region may contain semaphores
+MAP_STACK=		0x0400 ; region grows down, like a stack
+MAP_NOSYNC=		0x0800 ; page to but do not sync underlying file
+
+;
+; Mapping type
+;
+MAP_FILE=		0x0000 ; map from file (default)
+MAP_ANON=		0x1000 ; allocated from memory, swap space
+
+;
+; Extended flags
+;
+MAP_NOCORE=		0x00020000 ; dont include these pages in a coredump
+
+;
+; Process memory locking
+;
+MCL_CURRENT=		0x0001 ; Lock only current memory
+MCL_FUTURE=		0x0002 ; Lock all future memory as well
+
+;
+; Error return from mmap()
+;
+;	 MAP_FAILED=	 ((void *)-1)
+
+;
+; msync() flags
+;
+MS_SYNC=	 0x0000 ; msync synchronously
+MS_ASYNC=	 0x0001 ; return immediately
+MS_INVALIDATE=	 0x0002 ; invalidate all cached data
+
+;
+; Advice to madvise
+;
+_MADV_NORMAL=		0 ; no further special treatment
+_MADV_RANDOM=		1 ; expect random page references
+_MADV_SEQUENTIAL=	2 ; expect sequential page references
+_MADV_WILLNEED=		3 ; will need these pages
+_MADV_DONTNEED=		4 ; dont need these pages
+
+MADV_NORMAL=	_MADV_NORMAL
+MADV_RANDOM=	_MADV_RANDOM
+MADV_SEQUENTIAL=_MADV_SEQUENTIAL
+MADV_WILLNEED=	_MADV_WILLNEED
+MADV_DONTNEED=	_MADV_DONTNEED
+MADV_FREE=	5 ; dont need these pages, and junk contents
+MADV_NOSYNC=	6 ; try to avoid flushes to physical media
+MADV_AUTOSYNC=	7 ; revert to default flushing strategy
+MADV_NOCORE=	8 ; do not include these pages in a core file
+MADV_CORE=	9 ; revert to including pages in a core file
+MADV_PROTECT=	10 ; protect process from pageout kill
+
+;
+; Return bits from mincore
+;
+MINCORE_INCORE=			0x1 ; Page is incore
+MINCORE_REFERENCED=		0x2 ; Page has been referenced by us
+MINCORE_MODIFIED=		0x4 ; Page has been modified by us
+MINCORE_REFERENCED_OTHER=	0x8 ; Page has been referenced
+MINCORE_MODIFIED_OTHER=		0x10 ; Page has been modified
+MINCORE_SUPER=			0x20 ; Page is a "super" page
+
+;
+; XXX missing POSIX_TYPED_MEM_* macros and
+; posix_typed_mem_info structure.
+;
+POSIX_MADV_NORMAL=	_MADV_NORMAL
+POSIX_MADV_RANDOM=	_MADV_RANDOM
+POSIX_MADV_SEQUENTIAL=	_MADV_SEQUENTIAL
+POSIX_MADV_WILLNEED=	_MADV_WILLNEED
+POSIX_MADV_DONTNEED=	_MADV_DONTNEED
+
+;struct shmfd {
+;	size_t		shm_size 
+;	vm_object_t	shm_object 
+;	int		shm_refs 
+;	uid_t		shm_uid 
+;	gid_t		shm_gid 
+;	mode_t		shm_mode 
+;
+;;
+;; Values maintained solely to make this a better-behaved file
+;; descriptor for fstat() to run on.
+;;
+;	struct timespec	shm_atime 
+;	struct timespec	shm_mtime 
+;	struct timespec	shm_ctime 
+;	struct timespec	shm_birthtime 
+;
+;	struct label	*shm_label 		; MAC label
+;}
+
+
+;XXXXXXXXXXXXXXXX
+;XXXXXXXXXXXXXXXX
+; limits.h
+;XXXXXXXXXXXXXXXX
+;XXXXXXXXXXXXXXXX
+
+_POSIX_ARG_MAX=		4096
+_POSIX_CHILD_MAX=	25
+_POSIX_LINK_MAX=	8
+_POSIX_MAX_CANON=	255
+_POSIX_MAX_INPUT=	255
+_POSIX_NAME_MAX=	14
+_POSIX_NGROUPS_MAX=	8
+_POSIX_OPEN_MAX=	20
+_POSIX_PATH_MAX=	256
+_POSIX_PIPE_BUF=	512
+_POSIX_SSIZE_MAX=	32767
+_POSIX_STREAM_MAX=	8
+_POSIX_TZNAME_MAX=	6
+
+BC_BASE_MAX=		99 ; max ibase/obase values in bc(1)
+BC_DIM_MAX=		2048 ; max array elements in bc(1)
+BC_SCALE_MAX=		99 ; max scale value in bc(1)
+BC_STRING_MAX=		1000 ; max const string length in bc(1)
+COLL_WEIGHTS_MAX=	0 ; max weights for order keyword
+EXPR_NEST_MAX=		32 ; max expressions nested in expr(1)
+LINE_MAX=		2048 ; max bytes in an input line
+RE_DUP_MAX=		255 ; max RE's in interval notation
+
+_POSIX2_BC_BASE_MAX=		99
+_POSIX2_BC_DIM_MAX=		2048
+_POSIX2_BC_SCALE_MAX=		99
+_POSIX2_BC_STRING_MAX=		1000
+_POSIX2_EQUIV_CLASS_MAX=	2
+_POSIX2_EXPR_NEST_MAX=		32
+_POSIX2_LINE_MAX=		2048
+_POSIX2_RE_DUP_MAX=		255
+
+_POSIX_AIO_LISTIO_MAX=		16
+_POSIX_AIO_MAX=			1
+_POSIX_DELAYTIMER_MAX=		32
+_POSIX_MQ_OPEN_MAX=		8
+_POSIX_MQ_PRIO_MAX=		32
+_POSIX_RTSIG_MAX=		8
+_POSIX_SEM_NSEMS_MAX=		256
+_POSIX_SEM_VALUE_MAX=		32767
+_POSIX_SIGQUEUE_MAX=		32
+_POSIX_TIMER_MAX=		32
+
+_POSIX_THREAD_DESTRUCTOR_ITERATIONS=	4
+_POSIX_THREAD_KEYS_MAX=			128
+_POSIX_THREAD_THREADS_MAX=		64
+
+_POSIX_HOST_NAME_MAX=		255
+_POSIX_LOGIN_NAME_MAX=		9
+_POSIX_SS_REPL_MAX=		4
+_POSIX_SYMLINK_MAX=		255
+_POSIX_SYMLOOP_MAX=		8
+_POSIX_TRACE_EVENT_NAME_MAX=	30
+_POSIX_TRACE_NAME_MAX=		8
+_POSIX_TRACE_SYS_MAX=		8
+_POSIX_TRACE_USER_EVENT_MAX=	32
+_POSIX_TTY_NAME_MAX=		9
+_POSIX2_CHARCLASS_NAME_MAX=	14
+_POSIX2_COLL_WEIGHTS_MAX=	2
+
+_POSIX_RE_DUP_MAX=	 _POSIX2_RE_DUP_MAX
+
+_XOPEN_IOV_MAX=		16
+_XOPEN_NAME_MAX=	255
+_XOPEN_PATH_MAX=	1024
+PASS_MAX=		128 ; _PASSWORD_LEN from <pwd.h>
+
+NL_ARGMAX=	99 ; max # of position args for printf
+NL_LANGMAX=	31 ; max LANG name length
+NL_MSGMAX=	32767
+NL_NMAX=	1
+NL_SETMAX=	255
+NL_TEXTMAX=	2048
+
+MB_LEN_MAX=	6 ; 31-bit UTF-8
+
+
+;XXXXXXXXXXXXXXXX
+;XXXXXXXXXXXXXXXX
+; sys/time.h
+;XXXXXXXXXXXXXXXX
+;XXXXXXXXXXXXXXXX
+
+;struct timezone {
+;	int	tz_minuteswest 	; minutes west of Greenwich
+;	int	tz_dsttime 	; type of dst correction
+;}
+DST_NONE=	0 ; not on dst
+DST_USA=	1 ; USA style dst
+DST_AUST=	2 ; Australian style dst
+DST_WET=	3 ; Western European dst
+DST_MET=	4 ; Middle European dst
+DST_EET=	5 ; Eastern European dst
+DST_CAN=	6 ; Canada
+
+;struct bintime {
+;	time_t	sec 
+;	uint64_t frac 
+;}
+
+;
+; Names of the interval timers, and structure
+; defining a timer setting.
+;
+ITIMER_REAL=	0
+ITIMER_VIRTUAL=	1
+ITIMER_PROF=	2
+
+;struct itimerval {
+;	struct	timeval it_interval 	; timer interval
+;	struct	timeval it_value 	; current value
+;}
+
+;
+; Getkerninfo clock information structure
+;
+;struct clockinfo {
+;	int	hz 		; clock frequency
+;	int	tick 		; micro-seconds per hz tick
+;	int	spare 
+;	int	stathz 		; statistics clock frequency
+;	int	profhz 		; profiling clock frequency
+;}
+
+CLOCK_REALTIME=		0
+CLOCK_VIRTUAL=		1
+CLOCK_PROF=		2
+CLOCK_MONOTONIC=	4
+CLOCK_UPTIME=		5 ; FreeBSD-specific.
+CLOCK_UPTIME_PRECISE=	7 ; FreeBSD-specific.
+CLOCK_UPTIME_FAST=	8 ; FreeBSD-specific.
+CLOCK_REALTIME_PRECISE=	9 ; FreeBSD-specific.
+CLOCK_REALTIME_FAST=	10 ; FreeBSD-specific.
+CLOCK_MONOTONIC_PRECISE=11 ; FreeBSD-specific.
+CLOCK_MONOTONIC_FAST=	12 ; FreeBSD-specific.
+CLOCK_SECOND=		13 ; FreeBSD-specific.
+CLOCK_THREAD_CPUTIME_ID=14
+
+TIMER_RELTIME=		0x0 ; relative timer
+TIMER_ABSTIME=		0x1 ; absolute timer
+
+;XXXXXXXXXXXXXXXX
+;XXXXXXXXXXXXXXXX
+; sys/stat.h
+;XXXXXXXXXXXXXXXX
+;XXXXXXXXXXXXXXXX
+
+
+;struct ostat {
+;	__uint16_t st_dev 		; inode's device
+;	ino_t	  st_ino 		; inode's number
+;	mode_t	  st_mode 		; inode protection mode
+;	nlink_t	  st_nlink 		; number of hard links
+;	__uint16_t st_uid 		; user ID of the file's owner
+;	__uint16_t st_gid 		; group ID of the file's group
+;	__uint16_t st_rdev 		; device type
+;	__int32_t st_size 		; file size, in bytes
+;	struct	timespec st_atimespec 	; time of last access
+;	struct	timespec st_mtimespec 	; time of last data modification
+;	struct	timespec st_ctimespec 	; time of last file status change
+;	__int32_t st_blksize 		; optimal blocksize for I/O
+;	__int32_t st_blocks 		; blocks allocated for file
+;	fflags_t  st_flags 		; user defined flags for file
+;	__uint32_t st_gen 		; file generation number
+;}
+
+;struct stat {
+;	__dev_t   st_dev 		; inode's device
+;	ino_t	  st_ino 		; inode's number
+;	mode_t	  st_mode 		; inode protection mode
+;	nlink_t	  st_nlink 		; number of hard links
+;	uid_t	  st_uid 		; user ID of the file's owner
+;	gid_t	  st_gid 		; group ID of the file's group
+;	__dev_t   st_rdev 		; device type
+;#if __BSD_VISIBLE
+;	struct	timespec st_atimespec 	; time of last access
+;	struct	timespec st_mtimespec 	; time of last data modification
+;	struct	timespec st_ctimespec 	; time of last file status change
+;#else
+;	time_t	  st_atime 		; time of last access
+;	long	  __st_atimensec 	; nsec of last access
+;	time_t	  st_mtime 		; time of last data modification
+;	long	  __st_mtimensec 	; nsec of last data modification
+;	time_t	  st_ctime 		; time of last file status change
+;	long	  __st_ctimensec 	; nsec of last file status change
+;#endif
+;	off_t	  st_size 		; file size, in bytes
+;	blkcnt_t st_blocks 		; blocks allocated for file
+;	blksize_t st_blksize 		; optimal blocksize for I/O
+;	fflags_t  st_flags 		; user defined flags for file
+;	__uint32_t st_gen 		; file generation number
+;	__int32_t st_lspare 
+;#if __BSD_VISIBLE
+;	struct timespec st_birthtimespec  ; time of file creation
+;;
+;; Explicitly pad st_birthtimespec to 16 bytes so that the size of
+;; struct stat is backwards compatible. We use bitfields instead
+;; of an array of chars so that this doesn't require a C99 compiler
+;; to compile if the size of the padding is 0. We use 2 bitfields
+;; to cover up to 64 bits on 32-bit machines. We assume that
+;; CHAR_BIT is 8...
+;;
+;	unsigned int :(8 / 2) * (16 - (int)sizeof(struct timespec)) 
+;	unsigned int :(8 / 2) * (16 - (int)sizeof(struct timespec)) 
+;#else
+;	time_t	  st_birthtime 		; time of file creation
+;	long	  st_birthtimensec 	; nsec of file creation
+;	unsigned int :(8 / 2) * (16 - (int)sizeof(struct __timespec)) 
+;	unsigned int :(8 / 2) * (16 - (int)sizeof(struct __timespec)) 
+;#endif
+;}
+
+;struct nstat {
+;	__dev_t   st_dev 		; inode's device
+;	ino_t	  st_ino 		; inode's number
+;	__uint32_t st_mode 		; inode protection mode
+;	__uint32_t st_nlink 		; number of hard links
+;	uid_t	  st_uid 		; user ID of the file's owner
+;	gid_t	  st_gid 		; group ID of the file's group
+;	__dev_t   st_rdev 		; device type
+;	struct	timespec st_atimespec 	; time of last access
+;	struct	timespec st_mtimespec 	; time of last data modification
+;	struct	timespec st_ctimespec 	; time of last file status change
+;	off_t	  st_size 		; file size, in bytes
+;	blkcnt_t st_blocks 		; blocks allocated for file
+;	blksize_t st_blksize 		; optimal blocksize for I/O
+;	fflags_t  st_flags 		; user defined flags for file
+;	__uint32_t st_gen 		; file generation number
+;	struct timespec st_birthtimespec  ; time of file creation
+;;
+;; See above about the following padding.
+;;
+;	unsigned int :(8 / 2) * (16 - (int)sizeof(struct timespec)) 
+;	unsigned int :(8 / 2) * (16 - (int)sizeof(struct timespec)) 
+;}
+
+;st_atime=	st_atimespec.tv_sec
+;st_mtime=	st_mtimespec.tv_sec
+;st_ctime=	st_ctimespec.tv_sec
+;st_birthtime=	st_birthtimespec.tv_sec
+
+S_ISUID=	0004000 ; set user id on execution
+S_ISGID=	0002000 ; set group id on execution
+S_ISTXT=	0001000 ; sticky bit
+
+S_IRWXU=	0000700 ; RWX mask for owner
+S_IRUSR=	0000400 ; R for owner
+S_IWUSR=	0000200 ; W for owner
+S_IXUSR=	0000100 ; X for owner
+
+S_IREAD=	S_IRUSR
+S_IWRITE=	S_IWUSR
+S_IEXEC=	S_IXUSR
+
+S_IRWXG=	0000070 ; RWX mask for group
+S_IRGRP=	0000040 ; R for group
+S_IWGRP=	0000020 ; W for group
+S_IXGRP=	0000010 ; X for group
+
+S_IRWXO=	0000007 ; RWX mask for other
+S_IROTH=	0000004 ; R for other
+S_IWOTH=	0000002 ; W for other
+S_IXOTH=	0000001 ; X for other
+
+S_IFMT=		 0170000 ; type of file mask
+S_IFIFO=	 0010000 ; named pipe (fifo)
+S_IFCHR=	 0020000 ; character special
+S_IFDIR=	 0040000 ; directory
+S_IFBLK=	 0060000 ; block special
+S_IFREG=	 0100000 ; regular
+S_IFLNK=	 0120000 ; symbolic link
+S_IFSOCK=	 0140000 ; socket
+S_ISVTX=	 0001000 ; save swapped text even after use
+S_IFWHT=	 0160000 ; whiteout
+
+ACCESSPERMS=	S_IRWXU or S_IRWXG or S_IRWXO ; 0777
+ALLPERMS=	S_ISUID or S_ISGID or S_ISTXT or S_IRWXU or S_IRWXG or S_IRWXO
+DEFFILEMODE=	S_IRUSR or S_IWUSR or S_IRGRP or S_IWGRP or S_IROTH or S_IWOTH
+
+S_BLKSIZE=	 512 ; block size used in the stat struct
+
+;
+; Definitions of flags stored in file flags word.
+;
+; Super-user and owner changeable flags.
+;
+UF_SETTABLE=	0x0000ffff ; mask of owner changeable flags
+UF_NODUMP=	0x00000001 ; do not dump file
+UF_IMMUTABLE=	0x00000002 ; file may not be changed
+UF_APPEND=	0x00000004 ; writes to file may only append
+UF_OPAQUE=	0x00000008 ; directory is opaque wrt. union
+UF_NOUNLINK=	0x00000010 ; file may not be removed or renamed
+;
+; Super-user changeable flags.
+;
+SF_SETTABLE=	0xffff0000 ; mask of superuser changeable flags
+SF_ARCHIVED=	0x00010000 ; file is archived
+SF_IMMUTABLE=	0x00020000 ; file may not be changed
+SF_APPEND=	0x00040000 ; writes to file may only append
+SF_NOUNLINK=	0x00100000 ; file may not be removed or renamed
+SF_SNAPSHOT=	0x00200000 ; snapshot inode
+
+OPAQUE=		UF_OPAQUE
+APPEND=		UF_APPEND or SF_APPEND
+IMMUTABLE=	UF_IMMUTABLE or SF_IMMUTABLE
+NOUNLINK=	UF_NOUNLINK or SF_NOUNLINK
+
+; vim: set ts=8 sw=8 syn=fasm:

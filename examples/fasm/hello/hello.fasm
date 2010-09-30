@@ -1,5 +1,8 @@
 format ELF
-include "../../../FreeBSD.fasm"
+include "../../../include/syscalls.fasm"
+include "../../../include/common.fasm"
+
+STDOUT	= STDOUT_FILENO
 
 section '.text' executable
 public _start
