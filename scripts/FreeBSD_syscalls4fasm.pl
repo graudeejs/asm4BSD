@@ -37,7 +37,7 @@ while (my $line = <MF>) {
 
 		unless ("$syscall_current_type" eq "$syscall_type") {
 			print "end if\n" unless ($syscall_type eq "STD");
-			print "if defined _${syscall_current_type}_\n" unless ($syscall_current_type eq "STD");
+			print "if defined ${syscall_current_type}\n" unless ($syscall_current_type eq "STD");
 			$syscall_type = "$syscall_current_type";
 		}
 	}
