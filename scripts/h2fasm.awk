@@ -12,12 +12,19 @@ BEGIN {
 	PRINT_DEFINITIONS=1	# print CONSTANTS
 	PRINT_IFS=1		# print if, else etc
 	PRINT_EMTPY_LINES=1	# print empty lines (exept in structures)
-	PRINT_INCLUDES=1	# pinrt withc files are included form this header
+	PRINT_INCLUDES=1	# print which files are included form this header
+	PRINT_ENUM=1		# print enums
 	
 	DEBUG=0
 }
 
 PRINT_STRUCTURES == 1 && /struct/,/}/ {
+	gsub(/};/, "}")
+	sub(/;/, " ")	# replacing with space to preserver formating
+	DO_PRINT=1
+}
+
+PRINT_ENUM == 1 && /enum/,/}/ {
 	gsub(/};/, "}")
 	sub(/;/, " ")	# replacing with space to preserver formating
 	DO_PRINT=1
@@ -34,7 +41,7 @@ PRINT_COMMENTS = 1 && /\/\*/ && /\*\// {
 
 PRINT_DEFINITIONS == 1 && /#define[ \t]*[A-Z0-9_]*/ {	# assume all constants use capitals
 	$2=$2"=\t"
-	$1=""
+	$1="	"
 	DO_PRINT=1
 }
 
@@ -103,9 +110,10 @@ DO_PRINT == 1 {
 }
 
 END {
-	print "\n;"
-	print ";=========================================="
+	print "\n;=========================================="
 	print "; Converted with h2fasm.awk script"
 	print "; http://aldis.git.bsdroot.lv/asm4FreeBSD/ "
-	print ";"
+	print ";\n"
+	print "; vim: set ts=8 sw=8 syn=fasm:"
+
 }
