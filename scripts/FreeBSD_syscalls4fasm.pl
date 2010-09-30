@@ -11,7 +11,7 @@ package FreeBSD_syscalls4fasm;
 use warnings;
 use strict;
 
-my $version = "1.0";
+my $version = "1.0.1";
 
 my $masterfile = "/usr/src/sys/kern/syscalls.master";
 
@@ -20,9 +20,27 @@ open(MF, "<", $masterfile) or die "ERR: can't open '$masterfile' for reading\n";
 my $join_lines = 0;
 my $full_line = "";
 
+my $syscall_type = "STD";
+my $syscall_current_type = "STD";
+
 while (my $line = <MF>) {
 	chomp($line);			# remove newline
 	$line =~ s/[ \t]+$//;	# strip white space, if any
+
+	if ($line =~ m/^\d+/) {
+
+		if ($line =~ m/(STD|COMPAT\d*|LIBCOMPAT|NOSTD)/) {
+			$syscall_current_type = "$1";
+		} else {
+			$syscall_current_type = "STD";
+		}
+
+		unless ("$syscall_current_type" eq "$syscall_type") {
+			print "end if\n" unless ($syscall_type eq "STD");
+			print "if defined _${syscall_current_type}_\n" unless ($syscall_current_type eq "STD");
+			$syscall_type = "$syscall_current_type";
+		}
+	}
 
 	if ($line =~ m/^\d+[ \t].*\{.*/ or $join_lines == 1) {	# lines we're interested start with syscall number
 		$line =~ s/\t+/ /g;
