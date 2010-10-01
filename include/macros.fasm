@@ -1,0 +1,23 @@
+; Simple, universal macro to call FreeBSD kernel.
+;
+; Place syscall number in callno
+; add syscall arguments (order as mentioned in syscalls.fasm)
+; arguments will be pushed to stack in reverse order (as it should be done)
+; After syscall, stack will be cleaned
+macro syscall callno*,[args]
+{
+    common
+    	margc=1
+
+    reverse
+    	push	args
+	margc=margc+1
+
+    common
+	push	eax	; dummy argument (push eax, is smaller than push 0x0)
+	mov	eax,callno
+	int	0x80
+	add	esp,4*margc	; clear stack
+}
+
+; vim: set ts=8 sw=4 syn=fasm sts=4:
