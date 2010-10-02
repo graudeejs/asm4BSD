@@ -1,0 +1,79 @@
+format ELF
+include "../../../include/syscalls.fasm"
+include "../../../include/common.fasm"
+
+STDOUT	= STDOUT_FILENO
+
+section '.text' executable
+public _start
+_start:	
+	pop	ecx
+	; while I won't use them, I will save argc and argv
+	mov	[argc],ecx	; save argc
+	mov	[argv],esp	; save pointer to argv
+	mov	ebp,esp		; save pointer to argv in ebp
+
+	mov	ax,ds
+	mov	es,ax
+
+	xor	ebx,ebx		; make sure ebx is zero
+print_cmdl:
+	push	ecx		; save counter
+
+	; read pointer to command line argument, from argv array
+	mov	edi,[ebp + ebx * 4]
+
+	push	edi		; save pointer
+	sub	edx,0xFF
+	mov	ecx,edx		; assume max argument size
+	xor	eax,eax		; search for 0x0
+
+	cld			; make usre we search left to right
+	; how long is this commang line argument?
+	repnz	scasb
+	sub	edx,ecx
+	mov	ecx,edx
+	dec	ecx
+
+	pop	edi		; restore pointer address
+
+	; print current command line argument to STDOUT
+	push	ecx
+	push	edi
+	push	STDOUT
+	push	eax		; dummy arg
+	mov	eax,SYS_WRITE
+	int	0x80
+	add	esp,4*4
+
+	; to make this example trivial, I will call kernel again, and print
+	; newline seperatly
+	push	newline_size
+	push	newline
+	push	STDOUT
+	push	eax
+	mov	eax,SYS_WRITE
+	int	0x80
+	add	esp,4*4
+
+	; increase ebx (used to calculate address of pointer to commang line argument)
+	inc	ebx
+
+	pop	ecx		; restore argument counter
+	loop	print_cmdl
+
+exit:				; Exit system
+	push	EXIT_SUCCESS
+	push	eax
+	mov	eax,SYS_EXIT
+	int	0x80
+
+section '.data' writeable
+newline		db	0xA
+newline_size	=	$-newline
+
+; not really nessacery in our example
+argv		rd	1
+argc		rd	1
+
+; vim: set ts=8 sw=8 syntax=fasm:

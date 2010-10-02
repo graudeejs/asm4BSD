@@ -58,7 +58,7 @@
 ; redistributions should be placed in the reserved range at the end
 ; of the current calls.
 
-	SYS_NOSYS                      = 0 ; int nosys(void);
+	;SYS_NOSYS                     = 0 ; int nosys(void);
 	SYS_EXIT                       = 1 ; void sys_exit(int rval);
 	SYS_FORK                       = 2 ; int fork(void);
 	SYS_READ                       = 3 ; ssize_t read(int fd, void *buf, size_t nbyte);
@@ -327,7 +327,7 @@ end if
 	SYS_SETRLIMIT                  = 195 ; int setrlimit(u_int which, struct rlimit *rlp);
 	SYS_GETDIRENTRIES              = 196 ; int getdirentries(int fd, char *buf, u_int count, long *basep);
 	SYS_FREEBSD6_MMAP              = 197 ; caddr_t freebsd6_mmap(caddr_t addr, size_t len, int prot, int flags, int fd, int pad, off_t pos);
-	SYS_NOSYS                      = 198 ; int nosys(void);
+	;SYS_NOSYS                     = 198 ; int nosys(void);
 	SYS_FREEBSD6_LSEEK             = 199 ; off_t freebsd6_lseek(int fd, int pad, off_t offset, int whence);
 	SYS_FREEBSD6_TRUNCATE          = 200 ; int freebsd6_truncate(char *path, int pad, off_t length);
 	SYS_FREEBSD6_FTRUNCATE         = 201 ; int freebsd6_ftruncate(int fd, int pad, off_t length);
