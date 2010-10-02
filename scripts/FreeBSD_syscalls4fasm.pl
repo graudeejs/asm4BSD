@@ -11,7 +11,7 @@ package FreeBSD_syscalls4fasm;
 use warnings;
 use strict;
 
-my $version = "1.0.2";
+my $version = "1.0.3";
 
 my $masterfile = "/usr/src/sys/kern/syscalls.master";
 
@@ -63,7 +63,9 @@ while (my $line = <MF>) {
 	} elsif ($line =~ m/^\d+/) {
 		my ($number, $type, $name) = $line =~ m/(\d+)[ \t]+\w+[ \t]+(\w+)[ \t]+(\w+)/;
 		$name =~ tr/[a-z]/[A-Z]/;
-		print "\t;SYS_$name\t= $number ; $type\n";
+		my $prefix ="SYS_";
+		$prefix = "" if ($name =~ /^SYS_/);
+		printf "\t%-30s = $number ; $type\n", ";" . $prefix . $name;
 	} else {
 		if ($line =~ m/^[ \t]*;/ or $line =~ m/^$/) {	# check if line is commented
 			print "$line\n";
@@ -90,7 +92,7 @@ sub process_syscall_line() {
 	$name =~ tr/[a-z]/[A-Z]/;
 	
 	$prefix = "" if ($name =~ /^SYS_/);
-	print "\t$prefix$name\t= $number ; $comment\n";
+	printf "\t%-30s = $number ; $comment\n", $prefix . $name;
 
 	die "ERR: seams like regex needs improvement\n" unless $name;
 }
