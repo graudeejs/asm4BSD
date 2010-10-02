@@ -92,6 +92,7 @@ sub process_syscall_line() {
 	$name =~ tr/[a-z]/[A-Z]/;
 	
 	$prefix = "" if ($name =~ /^SYS_/);
+	$prefix = ";" . $prefix if ($name =~ /nosys/i);
 	printf "\t%-30s = $number ; $comment\n", $prefix . $name;
 
 	die "ERR: seams like regex needs improvement\n" unless $name;
