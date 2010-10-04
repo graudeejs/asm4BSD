@@ -17,7 +17,8 @@ macro syscall callno*,[args]
 	push	eax	; dummy argument (push eax, is smaller than push 0x0)
 	mov	eax,callno
 	int	0x80
-	add	esp,4*margc	; clear stack
+	; using lea instead of add, to preserver c-flag
+	lea	esp,[esp+4*syscall_argc]    ; clear stack
 }
 
 ; vim: set ts=8 sw=4 syn=fasm sts=4:
