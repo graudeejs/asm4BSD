@@ -1,0 +1,17 @@
+Flat assembler:
+http://flatassembler.net/
+
+Coding assembler in FreeBSD:
+* http://int80h.org/
+
+ANSI codes for console:
+* http://ascii-table.com/ansi-escape-sequences.php
+* http://ascii-table.com/ansi-escape-sequences-vt-100.php
+* http://ascii-table.com/documents/vt100/chapter3.php#S3.3.3
+* http://isthe.com/chongo/tech/comp/ansi_escapes.html
+
+Assembler Manuals for x86:
+* (Intel) http://www.intel.com/products/processor/manuals/
+* (AMD) http://developer.amd.com/documentation/guides/Pages/default.aspx
+
+
