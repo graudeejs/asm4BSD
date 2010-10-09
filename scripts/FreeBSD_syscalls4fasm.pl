@@ -11,9 +11,15 @@ package FreeBSD_syscalls4fasm;
 use warnings;
 use strict;
 
-my $version = "1.0.3";
+my $version = "1.0.4";
 
-my $masterfile = "/usr/src/sys/kern/syscalls.master";
+my $masterfile;
+
+if (defined $ARGV[0]) {
+	$masterfile = $ARGV[0];
+} else {
+	$masterfile = "/usr/src/sys/kern/syscalls.master";
+}
 
 open(MF, "<", $masterfile) or die "ERR: can't open '$masterfile' for reading\n";
 
