@@ -1,6 +1,6 @@
 format ELF
-include "../../../include/syscalls.fasm"
-include "../../../include/common.fasm"
+include "../../include/syscalls.fasm"
+include "../../include/common.fasm"
 
 STDOUT	= STDOUT_FILENO
 

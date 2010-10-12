@@ -1,6 +1,6 @@
 build: hello
 
-hello.o: hello.fasm ../../../include/syscalls.fasm ../../../include/common.fasm
+hello.o: hello.fasm ../../include/syscalls.fasm ../../include/common.fasm
 	fasm hello.fasm hello.o
 
 hello: hello.o
