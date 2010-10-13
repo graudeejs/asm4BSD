@@ -1,6 +1,6 @@
 build: echo_cmdl
 
-echo_cmdl.o: echo_cmdl.fasm ../../include/syscalls.fasm ../../include/common.fasm
+echo_cmdl.o: echo_cmdl.fasm
 	fasm echo_cmdl.fasm echo_cmdl.o
 
 echo_cmdl: echo_cmdl.o

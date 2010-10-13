@@ -1,8 +1,13 @@
 format ELF
-include "../../include/syscalls.fasm"
-include "../../include/common.fasm"
 
-STDOUT	= STDOUT_FILENO
+; pick the one you use :)
+include "../../FreeBSD/include/syscalls.fasm"
+;include "../../OpenBSD/include/syscalls.fasm"
+;include "../../NetBSD/include/syscalls.fasm"
+;include "../../DragonflyBSD/include/syscalls.fasm"
+
+STDOUT		= 1
+EXIT_SUCCESS	= 0
 
 section '.text' executable
 public _start

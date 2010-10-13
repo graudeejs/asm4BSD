@@ -99,7 +99,7 @@ sub process_syscall_line() {
 	my ($number, $type, $name, $comment);
 	my $prefix = "SYS_";
 	
-	($number, $type, $comment, $name) = ($pline =~ m/^(\d+) \w+ (\w+).+\{ (.* (\*??\w+) ??\(.*\);) ??\}/);
+	($number, $type, $comment, $name) = ($pline =~ m/^(\d+) \w+ (\w+).+\{ (.* \*??(\w+) ??\(.*\);) ??\}/);
 	$name =~ tr/[a-z]/[A-Z]/;
 	
 	$prefix = "" if ($name =~ /^SYS_/);

@@ -340,7 +340,7 @@ end if
 	SYS_GETRLIMIT                  = 194 ; int sys_getrlimit(int which, struct rlimit *rlp);
 	SYS_SETRLIMIT                  = 195 ; int sys_setrlimit(int which, const struct rlimit *rlp);
 	SYS_GETDIRENTRIES              = 196 ; int sys_getdirentries(int fd, char *buf, int count, long *basep);
-	SYS_*SYS_MMAP                  = 197 ; void *sys_mmap(void *addr, size_t len, int prot, int flags, int fd, long pad, off_t pos);
+	SYS_MMAP                       = 197 ; void *sys_mmap(void *addr, size_t len, int prot, int flags, int fd, long pad, off_t pos);
 	SYS___SYSCALL                  = 198 ; quad_t sys___syscall(quad_t num, ...);
 	SYS_LSEEK                      = 199 ; off_t sys_lseek(int fd, int pad, off_t offset, int whence);
 	SYS_TRUNCATE                   = 200 ; int sys_truncate(const char *path, int pad, off_t length);
@@ -405,7 +405,7 @@ end if
 	;SYS_MSGRCV                    = 227 ; UNIMPL
 ; #endif
 ; #ifdef SYSVSHM
-	SYS_*SYS_SHMAT                 = 228 ; void *sys_shmat(int shmid, const void *shmaddr, int shmflg);
+	SYS_SHMAT                      = 228 ; void *sys_shmat(int shmid, const void *shmaddr, int shmflg);
 	;229	UNIMPL
 	SYS_SHMDT                      = 230 ; int sys_shmdt(const void *shmaddr);
 if defined COMPAT_35
@@ -492,7 +492,7 @@ end if
 	SYS_GETRESGID                  = 283 ; int sys_getresgid(gid_t *rgid, gid_t *egid, gid_t *sgid);
 	SYS_SETRESGID                  = 284 ; int sys_setresgid(gid_t rgid, gid_t egid, gid_t sgid);
 	;SYS_OMQUERY                   = 285 ; OBSOL
-	SYS_*SYS_MQUERY                = 286 ; void *sys_mquery(void *addr, size_t len, int prot, int flags, int fd, long pad, off_t pos);
+	SYS_MQUERY                     = 286 ; void *sys_mquery(void *addr, size_t len, int prot, int flags, int fd, long pad, off_t pos);
 	SYS_CLOSEFROM                  = 287 ; int sys_closefrom(int fd);
 	SYS_SIGALTSTACK                = 288 ; int sys_sigaltstack(const struct sigaltstack *nss, struct sigaltstack *oss);
 ; #ifdef SYSVSHM
