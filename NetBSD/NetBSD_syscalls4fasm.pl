@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 # ----------------------------------------------------------------------------
 # "THE BEER-WARE LICENSE":
 # <aldis@bsdroot.lv> wrote this file. As long as you retain this notice you
