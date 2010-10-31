@@ -1,0 +1,288 @@
+; ----------------------------------------------------------------------------
+; "THE BEER-WARE LICENSE":
+; <aldis@bsdroot.lv> wrote this file. As long as you retain this notice you
+; can do whatever you want with this stuff. If we meet some day, and you think
+; this stuff is worth it, you can buy me a beer in return. Aldis Berjoza
+; ----------------------------------------------------------------------------
+
+
+include "syscalls.fasm"
+
+struc s_stat
+{
+	.st_dev		    rd 1 ; 4B | inode's device
+	.st_ino		    rd 1 ; 4B | inode's number
+	.st_mode	    rw 1 ; 2B | inode protection mode
+	.st_nlink	    rw 1 ; 2B | number of hard links
+	.st_uid		    rd 1 ; 4B | user ID of the file's owner
+	.st_gid		    rd 1 ; 4B | group ID of the file's group
+	.st_rdev	    rd 1 ; 4B | device type
+	.st_atime	    rd 1 ; 4B | time of last access
+	.st_atimensec	    rd 1 ; 4B | nsec of last access
+	.st_mtime	    rd 1 ; 4B | time of last data modification
+	.st_mtimensec	    rd 1 ; 4B | nsec of last data modification
+	.st_ctime	    rd 1 ; 4B | time of last file status change
+	.st_ctimensec	    rd 1 ; 4B | nsec of last file status change
+	.st_size	    rd 2 ; 8B | file size, in bytes
+	.st_blocks	    rd 2 ; 8B | blocks allocated for file
+	.st_blksize	    rd 1 ; 4B | optimal blocksize for I/O
+	.st_flags	    rd 1 ; 4B | user defined flags for file
+	.st_gen		    rd 1 ; 4B | file generation number
+	.st_lspare	    rd 1 ; 4B |
+	.st_birthtime	    rd 1 ; 4B | time of file creation
+	.st_birthtimensec   rd 1 ; 4B | nsec of file creation
+}
+S_STAT_SIZE		=   88
+
+
+; void exit(int exitcode) {{{1
+align 16
+exit:
+	mov	eax,SYS_EXIT
+	int	0x80
+; 1}}}
+
+; int open(char *path, int flags ,int mode) {{{1
+; 3rd argument is nessacery when you are creating new file, other wise it'll be ignored
+align 16
+open:
+	mov	eax,SYS_OPEN
+	int	0x80
+	ret	12
+; 1}}}
+
+; int close(int fd) {{{1
+align 16
+close:
+	mov	eax,SYS_CLOSE
+	int	0x80
+	ret	4
+; 1}}}
+
+; int read(int fd, char *buff, int nbytes) {{{1
+align 16
+read:
+	mov	eax,SYS_READ
+	int	0x80
+	ret	12
+; 1}}}
+
+; int write(int fd, char *buff, int nbytes) {{{1
+align 16
+write:
+	mov	eax,SYS_WRITE
+	int	0x80
+	ret	12
+; 1}}}
+
+; int stat(char *path, struct stat *ub) {{{1
+align 16
+stat:
+	push	ebp
+	lea	ebp,[esp+8]
+	push	ebx
+	push	ecx
+	push	edi
+	push	esi
+
+	mov	ecx,S_STAT_SIZE	; ecx = size of stat structure
+	sub	esp,ecx		; allocate space on stack
+	mov	esi,esp		; will write new data to stack (here's address)
+
+	mov	eax,[ebp]	; path
+	mov	edi,[ebp+4]	; pointer to address where to put stat
+
+	push	esi		; address in stack, where to write data
+	push	eax		; filename
+	push	eax		; dummy argument
+	mov	eax,SYS_STAT
+	int	0x80
+	jc	.skip_copy	; don't copy data if error was returned
+
+	; copy data from stack to requested address
+	rep	movs byte[es:edi],[ss:esi]
+    .skip_copy:
+
+	; Deallocate space on stack and clean stack after kernel call.
+	; Using lea instead of add to preserve CF
+	lea	esp,[esp+S_STAT_SIZE+12]
+
+	pop	esi
+	pop	edi
+	pop	ecx
+	pop	ebx
+	pop	ebp
+	ret	8
+; 1}}}
+
+; int fstat(int fd, struct stat *ub) {{{1
+align 16
+fstat:
+	push	ebp
+	lea	ebp,[esp+8]
+	push	ebx
+	push	ecx
+	push	edi
+	push	esi
+
+	mov	ecx,S_STAT_SIZE	; ecx = size of stat structure
+	sub	esp,ecx		; allocate space on stack
+	mov	esi,esp		; will write new data to stack (here's address)
+
+	mov	eax,[ebp]	; file descriptor
+	mov	edi,[ebp+4]	; pointer to address where to put stat
+
+	push	esi		; address in stack, where to write data
+	push	eax		; filename
+	push	eax		; dummy argument
+	mov	eax,SYS_FSTAT
+	int	0x80
+	jc	.skip_copy	; don't copy data if error was returned
+
+	; copy data from stack to requested address
+	rep	movs byte[es:edi],[ss:esi]
+    .skip_copy:
+
+	; Deallocate space on stack and clean stack after kernel call.
+	; Using lea instead of add to preserve c flag
+	lea	esp,[esp+S_STAT_SIZE+12]
+
+	pop	esi
+	pop	edi
+	pop	ecx
+	pop	ebx
+	pop	ebp
+	ret	8
+; 1}}}
+
+; int lstat(char *path, struct stat *ub) {{{1
+align 16
+lstat:
+	push	ebp
+	lea	ebp,[esp+8]
+	push	ebx
+	push	ecx
+	push	edi
+	push	esi
+
+	mov	ecx,S_STAT_SIZE	; ecx = size of stat structure
+	sub	esp,ecx		; allocate space on stack
+	mov	esi,esp		; will write new data to stack (here's address)
+
+	mov	eax,[ebp]	; path
+	mov	edi,[ebp+4]	; pointer to address where to put stat
+
+	push	esi		; address in stack, where to write data
+	push	eax		; filename
+	push	eax		; dummy argument
+	mov	eax,SYS_LSTAT
+	int	0x80
+	jc	.skip_copy	; don't copy data if error was returned
+
+	; copy data from stack to requested address
+	rep	movs byte[es:edi],[ss:esi]
+    .skip_copy:
+
+	; Deallocate space on stack, and clean stack after kernel call.
+	; Using lea instead of add to preserve c flag
+	lea	esp,[esp+S_STAT_SIZE+12]
+
+	pop	esi
+	pop	edi
+	pop	ecx
+	pop	ebx
+	pop	ebp
+	ret	8
+; 1}}}
+
+; void *mmap(void *addr, int len, int prot, int flags, int fd, int pos, int padding) {{{1
+align 16
+mmap:
+	mov	eax,SYS_MMAP
+	int	0x80
+	ret	28
+; 1}}}
+
+; int munmap(void *addr, int len) {{{1
+align 16
+munmap:
+	mov	eax,SYS_MUNMAP
+	int	0x80
+	ret	8
+; 1}}}
+
+; void *mmap_alloc(int size) {{{1
+align 16
+mmap_alloc:
+	mov	eax,[esp+4]	; size
+	push	0
+	push	0
+	push	-1
+	push	MAP_ANON
+	push	PROT_READ or PROT_WRITE
+	push	eax
+	push	NULL
+	call	mmap
+	ret	4
+; 1}}}
+
+; void *mmap_realloc(void *address, int new_size, int old_size) {{{1
+mmap_realloc:
+	push	ebp
+	lea	ebp,[esp+8]
+	push	edi
+
+	mov	edi,[ebp]
+	mov	eax,[ebp+4]
+
+	push	0
+	push	0
+	push	-1
+	push	MAP_ANON or MAP_FIXED	    ; request more space
+	push	PROT_READ or PROT_WRITE
+	push	eax	    ; size
+	push	edi	    ; address
+	call	mmap
+	jnc	.exit	    ; if no error, then we're done
+
+	; otherwise request allocation of memmory
+	mov	eax,[ebp+4]
+	push	0
+	push	0
+	push	-1
+	push	MAP_ANON
+	push	PROT_READ or PROT_WRITE
+	push	eax	    ; size
+	push	NULL	    ; address
+	jc	.exit
+	call	mmap
+
+	; copy old data to new place
+	push	ecx
+	mov	ecx,[ebp+8]
+	push	ecx	    ; bytes
+	push	edi	    ; src address
+	push	eax	    ; dst address
+	call	copy
+
+	; free old allocated memory
+	push	ecx
+	push	edi
+	call	munmap
+
+	pop	ecx
+	clc
+    .exit:
+	pop	edi
+	pop	ebp
+	ret	8
+; 1}}}
+
+; int ioctl(int fd, u_long com, caddr_t data) {{{1
+ioctl:
+    mov	    eax,SYS_IOCTL
+    int	    0x80
+    ret	    12
+; 1}}}
+
+; vim: set ts=8 sw=4 fdm=marker sts=4 syn=fasm foldminlines=1:
