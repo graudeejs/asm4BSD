@@ -5,7 +5,6 @@
 ; this stuff is worth it, you can buy me a beer in return. Aldis Berjoza
 ; ----------------------------------------------------------------------------
 
-
 include "syscalls.fasm"
 
 struc s_stat
@@ -285,4 +284,55 @@ ioctl:
     ret	    12
 ; 1}}}
 
+; void copy(char *dst, char *src, int bytes) {{{1
+; copies from ds, to es, doesn't modify eax
+align 16
+copy:
+	push	ebp
+	lea	ebp,[esp+8]
+	push	eax
+	mov	eax,[ebp+8]	; bytes
+	test	eax,eax
+	jz	.exit
+
+	push	ecx
+	push	edi
+	push	edx
+	push	esi
+	
+	mov	edi,[ebp]	; dst
+	mov	esi,[ebp+4]	; src
+
+	mov	ecx,4
+	xor	edx,edx
+	div	ecx
+	cld
+	jmp	.copy_4b	; skip NOPs
+
+    align 16
+    .copy_4b:
+	movsd
+	dec	eax
+	jnz	.copy_4b
+
+	test	edx,edx
+	jz	.skip_copy_1b
+    .copy_1b:
+	movsb
+	dec	edx
+	jnz	.copy_1b
+
+    .skip_copy_1b:
+
+	pop	esi
+	pop	edx
+	pop	edi
+	pop	ecx
+    .exit:
+	pop	eax
+	pop	ebp
+	ret	12
+; 1}}}
+
 ; vim: set ts=8 sw=4 fdm=marker sts=4 syn=fasm foldminlines=1:
+
