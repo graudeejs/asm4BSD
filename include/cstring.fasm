@@ -1,0 +1,746 @@
+; ----------------------------------------------------------------------------
+; "THE BEER-WARE LICENSE":
+; <aldis@bsdroot.lv> wrote this file. As long as you retain this notice you
+; can do whatever you want with this stuff. If we meet some day, and you think
+; this stuff is worth it, you can buy me a beer in return. Aldis Berjoza
+; ----------------------------------------------------------------------------
+
+; uint strlen(char *string, uint maxlen) {{{1
+align 16
+strnlen:
+	push	ebp
+	lea	ebp,[esp+8]
+	push	ecx
+
+	mov	ecx,[ebp+4]	; max lenght
+	xor	eax,eax
+	test	ecx,ecx
+	jz	.exit
+
+	push	edi
+	push	edx
+
+	mov	edi,[ebp]	; string address
+
+	mov	edx,ecx
+	cld
+	xor	eax,eax		; Search for 0x0
+	repnz	scasb
+	sub	edx,ecx
+	mov	eax,edx
+
+	pop	edx
+	pop	edi
+    .exit:
+	pop	ecx
+	pop	ebp
+	ret	8
+; 1}}}
+
+; uint strncpy (char *dest, char *src, uint max_bytes) {{{1
+align 16
+strncpy:
+	push	ebp
+	lea	ebp,[esp+8]
+	push	ecx
+	mov	ecx,[ebp+2*4]	; max lenght
+	xor	eax,eax
+	test	ecx,ecx
+	jz	.exit
+
+	push	edi
+	push	esi
+
+	mov	esi,[ebp+4]	; source buffer
+	mov	edi,[ebp]	; destination buffer
+
+	dec	ecx	    ; reserve 1 byte for 0x0
+
+	mov	eax,ecx
+	cld
+	rep	movsb
+	mov	byte[edi], 0
+	sub	eax,ecx
+
+	pop	esi
+	pop	edi
+    .exit:
+	pop	ecx
+	pop	ebp
+	ret	12
+; 1}}}
+
+; uint int2str(char *dest, uint buffer_size, int value) {{{1
+align 16
+int2str:
+	push	ebp
+	lea	ebp,[esp+8]
+	push	ecx
+	mov	ecx,[ebp+4]	; buffer size
+	test	ecx,ecx
+	jz	.exit
+	dec	ecx		; reserve 1 byte for 0x0
+
+	push	ebx
+	push	edi
+	push	edx
+	push	esi
+
+	;  destination -> temp buffer on stack (dec esi later)
+	mov	esi,esp
+	sub	esp,12		; allocate 12 bytes on stack (align 16)
+
+	mov	edi,[ebp]	; dest. buffer
+	mov	eax,[ebp+8]	; value
+
+	test	eax,eax
+	jns	.positive
+	neg	eax
+	mov	byte[edi],'-'
+	inc	edi
+	dec	ecx
+    .positive:
+
+	push	ecx		; save buffer size
+	mov	ecx,10		; convert entire integer (we will display most
+				; significant bytes, if buffer is not big enough)
+	mov	ebx,10
+    .digit:
+	dec	esi
+	xor	edx,edx
+	div	ebx
+	or	dl,0x30		; convert to ASCII
+	mov	[esi],dl
+	test	eax,eax
+	loopnz	.digit
+	mov	eax,ecx		; How many bytes are left? Save magic number in eax
+
+	pop	ecx		; restore buffer size
+	mov	edx,10
+	sub	edx,eax		; how many bytes do we have in temp buffer on stack
+	cmp	ecx,edx		; is buffer larger than temp data on stack
+	jle	.skip_correction
+	mov	ecx,edx		; if buffer > data on stack, adjust ecx counter
+    .skip_correction:
+
+	push	ecx
+	cld			; write left to right
+	rep	movsb		; copy hex value to buffer
+	mov	byte[edi],0	; write 0x0 at the end
+	pop	ecx
+
+	add	esp,12		; deallocate 12 bytes on stack
+
+	pop	esi
+	pop	edx
+	pop	edi
+	pop	ebx
+
+	mov	eax,[ebp+8]	; value
+	test	eax,eax		; check if number was negative
+	jns	.exit
+	inc	ecx		; if number was negative increase ecs because
+				; we wrote "-"
+    .exit:
+	mov	eax,ecx
+	pop	ecx
+	pop	ebp
+	ret	12
+; 1}}}
+
+; uint uint2str(char *dest, uint buffer_size, uint value) {{{1
+align 16
+uint2str:
+	push	ebp
+	lea	ebp,[esp+8]
+	push	ecx
+	mov	ecx,[ebp+4]	; buffer size
+	test	ecx,ecx
+	jz	.exit
+	dec	ecx		; reserve 1 byte for 0x0
+
+	push	ebx
+	push	edi
+	push	edx
+	push	esi
+
+	;  destination -> temp buffer on stack (dec esi later)
+	mov	esi,esp
+	sub	esp,12		; allocate 12 bytes on stack
+
+	mov	edi,[ebp]	; dest. buffer
+	mov	eax,[ebp+8]	; value
+
+	push	ecx		; save buffer size
+	mov	ecx,10		; convert entire integer (we will display most
+				; significant bytes, if buffer is not big enough)
+	mov	ebx,10
+    .digit:
+	dec	esi
+	xor	edx,edx
+	div	ebx
+	or	dl,0x30		; convert to ASCII
+	mov	[esi],dl
+	test	eax,eax
+	loopnz	.digit
+	mov	eax,ecx		; How many bytes are left? Save magic number in eax
+
+	pop	ecx		; restore buffer size
+	mov	edx,10
+	sub	edx,eax		; how many bytes do we have in temp buffer on stack
+	cmp	ecx,edx		; is buffer larger than temp data on stack
+	jbe	.skip_correction
+	mov	ecx,edx		; if buffer > data on stack, adjust ecx counter
+    .skip_correction:
+
+	push	ecx
+	cld			; write left to right
+	rep	movsb		; copy hex value to buffer
+	mov	byte[edi],0	; write 0x0 at the end
+	pop	ecx
+
+	add	esp,12		; deallocate 12 bytes on stack
+
+	pop	esi
+	pop	edx
+	pop	edi
+	pop	ebx
+
+    .exit:
+	mov	eax,ecx
+	pop	ecx
+	pop	ebp
+	ret	12
+; 1}}}
+
+; uint int2hex(char *dest, uint buffer_size, uint value) {{{1
+; assming SS=ES !!!
+align 16
+int2hex:
+	push	ebp
+	lea	ebp,[esp+8]
+	push	ecx
+	mov	ecx,[ebp+4]	; buffer size
+	test	ecx,ecx
+	jz	.exit
+	dec	ecx		; reserve 1 byte for 0x0
+
+	push	ebx
+	push	edi
+	push	edx
+	push	esi
+
+	mov	edi,[ebp]	; dest. buffer
+	mov	eax,[ebp+8]	; value
+
+	; Don't want to store data in CS
+	; Want to keep data within this module
+	; Push xlat table
+	push	'CDEF'
+	push	'89AB'
+	push	'4567'
+	push	'0123'
+	mov	ebx,esp
+	sub	esp,8		; allocate 8 bytes on stack (temp)
+	push	ecx		; save buffer size
+
+	push	edi		; save destination buffer address
+	mov	edi,esp		; destination -> temp buffer on stack
+	dec	edi
+
+	mov	ecx,8		; convert entire integer (we will display most
+				; significant bytes, if buffer is not big enough)
+	mov	edx,eax
+
+	std			; write right to left
+    .digit:
+	mov	eax,edx
+	and	eax,0xF
+	xlatb
+	stosb
+	shr	edx,4		; edx=edx/16
+	loopnz	.digit
+
+	mov	eax,ecx		; How many bytes are left? Save magic number in eax
+
+	mov	esi,edi
+	inc	esi
+	pop	edi		; restore destination buffer address
+
+	pop	ecx		; restore buffer size
+	mov	edx,8
+	sub	edx,eax		; how many bytes do we have in temp buffer on stack
+	cmp	ecx,edx		; is buffer larger than temp data on stack
+	jbe	.skip_correction
+	mov	ecx,edx		; if buffer > data on stack, adjust ecx counter
+    .skip_correction:
+	push	ecx
+
+	cld			; write left to right
+	rep	movsb		; copy hex value to buffer
+	mov	byte[edi],0	; write 0x0 at the end
+	pop	ecx
+
+	add	esp,24		; deallocate 8 bytes from stack
+
+	pop	esi
+	pop	edx
+	pop	edi
+	pop	ebx
+    .exit:
+	mov	eax,ecx
+	pop	ecx
+	pop	ebp
+	ret	12
+; 1}}}
+
+macro m_strf buff*, buff_size*, formt, [strf_arg]	; {{{1
+{
+    common
+	strf_args = 0
+
+    reverse
+	push	strf_arg
+	strf_args = strf_args + 1
+
+    common
+	push	strf_args
+	push	formt
+	push	buff_size
+	push	buff
+	call	strf
+}
+; 1}}}
+
+; int strf(char *buffer, int buffer_size, char *format int arguments, void *arg1, ...) {{{1
+align 16
+strf:
+	push	ebp
+	lea	ebp,[esp+8]
+	push	ecx
+	push	edi
+	push	esi
+
+	mov	ecx,[ebp+4]	; buffer size
+
+	xor	eax,eax
+	test	ecx,ecx
+	jz	.clean_stack_and_exit
+	dec	ecx	    ; reserver 1 byte for 0x0
+
+	push	ebx
+	push	edx
+	push	edx
+
+	mov	edi,[ebp]	; buffer
+	mov	esi,[ebp+8]	; format
+	mov	edx,[ebp+12]	; argument count
+	mov	ebx,4
+
+	push	ecx
+	jmp	.next_byte	; skip NOPs
+
+    align 16
+    .next_byte:
+	test	ecx,ecx
+	jz	.exit
+	cld
+	lodsb
+	test	al,al		; Are we at the end of string to format (\0 reached)?
+	jz	.exit		;   YES -> exit
+	test	edx,edx		; Are there any other args on stack
+	jz	.insert_skip_from_stack	;   YES -> prevent stack underrrun
+	cmp	al,'%'
+	je	.insert_from_stack
+    .insert_skip_from_stack:
+	cmp	al,'\'
+	je	.insert_special
+	stosb
+;	loop	.next_byte
+	dec	ecx
+	jnz	.next_byte
+
+    .exit:
+	mov	byte[edi],0	; make sure last byte is 0x0
+	; calculate how many byte we wrote to buffer not counting 0x0
+	pop	eax
+	sub	eax,ecx
+
+	pop	edx
+	pop	ecx
+	pop	ebx
+
+    .clean_stack_and_exit:
+	mov	ecx,[ebp+12]   ; argument count
+	test	ecx,ecx
+	jz	.stack_is_clean
+	; CLEAN STACK!!!
+	lea	esi,[esp+16]
+	shl	ecx,2	 ; edx=edx*4
+	add	esp,ecx
+	lea	edi,[esp+16]
+	mov	ecx,5
+	std
+	rep	movsd
+
+    .stack_is_clean:
+	pop	esi
+	pop	edi
+	pop	ecx
+	pop	ebp
+	ret	16
+
+
+    align 16
+    .insert_from_stack:
+	mov	ah,[esi]	;next byte
+
+	;==========================
+	cmp	ah,'d'
+	je	.insert_decimal
+	cmp	ah,'i'
+	jne	.insert_decimal_skip
+    align 16
+    .insert_decimal:
+	mov	eax,[ebp+ebx*4]
+	inc	ebx
+	dec	edx
+	push	eax	; value
+	push	ecx	; buffer size
+	push	edi	; buffer
+	call	int2str
+	add	edi,eax
+	sub	ecx,eax
+	inc	esi
+	jmp	.next_byte
+    align 16
+    .insert_decimal_skip:
+
+	;==========================
+	cmp	ah,'u'
+	jne	.insert_unsigned_skip
+	mov	eax,[ebp+ebx*4]
+	inc	ebx
+	dec	edx
+	push	eax	; value
+	push	ecx	; buffer size
+	push	edi	; buffer
+	call	uint2str
+	add	edi,eax
+	sub	ecx,eax
+	inc	esi
+	jmp	.next_byte
+    align 16
+    .insert_unsigned_skip:
+
+	;==========================
+	cmp	ah,'h'
+	je	.insert_hex
+	cmp	ah,'X'
+	je	.insert_hex
+	cmp	ah,'p'
+	jne	.insert_hex_skip
+    align 16
+    .insert_hex:
+	mov	eax,[ebp+ebx*4]
+	inc	ebx
+	dec	edx
+	push	eax	; value
+	push	ecx	; buffer size
+	push	edi	; buffer
+	call	int2hex
+	add	edi,eax
+	sub	ecx,eax
+	inc	esi
+	jmp	.next_byte
+    align 16
+    .insert_hex_skip:
+
+	;==========================
+	cmp	ah,'c'
+	jne	.insert_char_skip
+	mov	eax,[ebp+ebx*4]
+	inc	ebx
+	dec	edx
+	mov	byte[edi],ah
+	inc	edi
+	inc	esi
+	dec	ecx
+	jmp	.next_byte
+    align 16
+    .insert_char_skip:
+
+	;==========================
+	cmp	ah,'s'
+	jne	.insert_string_skip
+	mov	eax,[ebp+ebx*4]
+	push	ecx	    ; max_len
+	push	eax	    ; string
+	call	strnlen
+	push	eax	    ; max lenght to copy
+	mov	eax,[ebp+ebx*4]
+	push	eax	    ; string
+	push	edi	    ; dest buffer
+	call	strncpy
+	add	edi,eax
+	sub	ecx,eax
+	inc	esi
+	inc	ebx
+	dec	edx
+	jmp	.next_byte
+    align 16
+    .insert_string_skip:
+
+	;==========================
+	cmp	ah,'%'
+	jne	.insert_precent_skip
+	mov	[edi],al
+	inc	edi
+	inc	esi
+	dec	ecx
+	jmp	.next_byte
+    align 16
+    .insert_precent_skip:
+
+	;==================== fallback
+	stosb
+	dec	ecx
+	jmp	.next_byte
+
+
+    align 16
+    .insert_special:
+	mov	ah,[esi]	; next byte
+
+	;==========================
+	cmp	ah,'\'
+	jne	.insert_special_backslash_skip
+	stosb		; '\' is still in al
+	inc	esi
+	dec	ecx
+	jmp	.next_byte
+    align 16
+    .insert_special_backslash_skip:
+
+	;==========================
+	cmp	ah,'n'
+	jne	.insert_special_newline_skip
+	mov	byte[edi],0xA
+	inc	edi
+	inc	esi
+	dec	ecx
+	jmp	.next_byte
+    align 16
+    .insert_special_newline_skip:
+
+	;==========================
+	cmp	ah,'t'
+	jne	.insert_special_tab_skip
+	mov	byte[edi],0x8
+	inc	edi
+	inc	esi
+	dec	ecx
+	jmp	.next_byte
+    align 16
+    .insert_special_tab_skip:
+
+	;==========================
+	cmp	ah,'x'
+	jne	.insert_special_hex_skip
+	inc	esi
+	cld
+	lodsw
+	xchg	al,ah
+	push	eax
+	call	hex2ascii
+	stosb
+	dec	ecx
+	jmp	.next_byte
+    align 16
+    .insert_special_hex_skip:
+
+	;==========================
+	cmp	ah,'e'
+	jne	.insert_special_esc_skip
+	mov	byte[edi],0x1B
+	inc	edi
+	inc	esi
+	dec	ecx
+	jmp	.next_byte
+    align 16
+    .insert_special_esc_skip:
+
+	;==================== fallback
+	stosb
+	dec	ecx
+	jmp	.next_byte
+
+
+; 1}}}
+
+; char hex2ascii(int value) {{{1
+; converts 2 bytes with hex to 1 ascii byte
+; doesn't verify if input is correct
+align 16
+hex2ascii:
+	mov	eax,[esp+4]	; value
+
+	cmp	al,57
+;	jg	.al_not_digit
+	ja	.al_not_digit
+	sub	al,48		; if AL is 0-9
+	jmp	.al_ok
+    .al_not_digit:
+	cmp	al,70
+;	jg	.al_not_ucase
+	ja	.al_not_ucase
+	sub	al,55		; if AL is A-F
+	jmp	.al_ok
+    .al_not_ucase:
+	sub	al,87		; if AL is a-f
+    .al_ok:
+
+	cmp	ah,57
+;	jg	.ah_not_digit
+	ja	.ah_not_digit
+	sub	ah,48		; if AH is 0-9
+	jmp	.ah_ok
+    .ah_not_digit:
+	cmp	ah,70
+;	jg	.ah_not_ucase
+	ja	.ah_not_ucase
+	sub	ah,55		; if AH is A-F
+	jmp	.ah_ok
+    .ah_not_ucase:
+	sub	ah,87		; if AH is a-f
+    .ah_ok:
+
+	shl	ah,4		; ah=ah*16
+	add	al,ah
+	and	eax,0xFF	; mask out all but al
+
+	ret	4
+; 1}}}
+
+; uint str2uint (char *buffer, int buff_size) {{{1
+; will read no more than 10 bytes from buffer and convert them to integer.
+; if number is out of range (0 to 4294967295), will return max value and set CF
+align 16
+str2uint:
+	push	ebp
+	lea	ebp,[esp+8]
+	push	ebx
+	push	ecx
+	push	edx
+	push	esi
+
+	mov	ecx,[ebp+4]	; buffer size
+	xor	eax,eax
+	test	ecx,ecx
+	jz	.exit_with_error
+	cmp	ecx,10
+	jbe	.buff_size_ok
+	mov	ecx,10
+    .buff_size_ok:
+
+	mov	esi,[ebp]	; buffer
+	xor	ebx,ebx
+	xor	edx,edx
+    .read_char:
+	movzx	ebx,byte[esi]
+	inc	esi
+	sub	bl,'0'
+	js	.not_number
+	cmp	bl,9
+	ja	.not_number
+	push	ecx
+
+	mov	ecx,10
+	mul	ecx
+	add	eax,ebx
+	pop	ecx
+	jc	.cant_add_no_more
+	dec	ecx
+	jnz	.read_char
+
+    .not_number:
+	clc
+	jmp	.exit
+
+    .cant_add_no_more:
+	mov	eax,-1
+    .exit_with_error:
+	stc
+    .exit:
+	pop	esi
+	pop	edx
+	pop	ecx
+	pop	ebx
+	pop	ebp
+	ret	8
+; 1}}}
+
+; int str2int (char *buff, int buff_size) {{{1
+; will read no more than 11 bytes from buffer and convert them to integer.
+; if number is out of range (-2,147,483,648 to +2,147,483,647), will return ±max value and set CF
+align 16
+str2int:
+	push	ebp
+	lea	ebp,[esp+8]
+	push	ecx
+	push	edx
+	push	esi
+
+	mov	esi,[ebp]
+	mov	ecx,[ebp+4]
+
+	movzx	edx,byte[esi]
+	cmp	dl,'-'		; test minus
+	je	.negative
+	cmp	dl,'+'		; test plus
+	je	.positive
+	jmp	.positive2
+
+    .negative:
+	inc	esi
+	dec	ecx
+	push	ecx
+	push	esi
+	call	str2uint
+	jc	.max_negative
+	cmp	eax,0x80000000
+	ja	.max_negative
+	neg	eax
+	clc
+	jmp	.exit
+    .max_negative:
+	mov	eax,0x80000000
+	stc
+	jmp	.exit
+
+    .positive:
+	inc	esi
+	dec	ecx
+    .positive2:
+	push	ecx
+	push	esi
+	call	str2uint
+	jc	.max_positive
+	cmp	eax,0x7FFFFFFF
+	ja	.max_positive
+	clc
+	jmp	.exit
+
+    .max_positive:
+	mov	eax,0x7FFFFFFF
+	stc
+
+    .exit:
+	pop	esi
+	pop	edx
+	pop	ecx
+	pop	ebp
+	ret	8
+; 1}}}
+
+; vim: set ts=8 sw=4 sts=4 syn=fasm: 

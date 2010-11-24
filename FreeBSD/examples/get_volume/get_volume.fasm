@@ -1,0 +1,83 @@
+format ELF
+public _start
+
+include "../../include/syscalls.fasm"
+include "../../include/common.fasm"
+include "soundcard.fasm"
+
+
+section ".text" executable align 16
+_start:
+    push    0
+    push    O_RDWR
+    push    mixer_dev
+    push    eax
+    mov	    eax,SYS_OPEN
+    int	    0x80
+    lea	    esp,[esp+4*4]
+    jc	    error
+    mov	    [fd],eax
+
+    push    vol
+    MIXER_READ SOUND_MIXER_VOLUME
+    push    eax
+    push    eax
+    mov	    eax,SYS_IOCTL
+    int	    0x80
+    lea	    esp,[esp+4*4]
+    jc	    error
+    mov	    eax,[vol]
+
+    mov	    ebx,eax
+    and	    eax,0x000000FF
+    and	    ebx,0x0000FF00
+    shr	    ebx,8
+
+    push    ebx
+    push    eax
+    push    2
+    push    frmt
+    push    buff_len
+    push    buff
+    call    strf
+
+    push    eax
+    push    buff
+    push    STDOUT
+    push    eax
+    mov	    eax,SYS_WRITE
+    int	    0x80
+    lea	    esp,[esp+4*4]
+    jc	    error
+    
+    push    EXIT_SUCCESS
+exit:
+    cmp	    dword[fd],-1
+    je	    .skip_close
+    push    dword[fd]
+    push    eax
+    mov	    eax,SYS_EXIT
+    int	    0x80
+    lea	    esp,[esp+2*4]
+
+.skip_close:
+    push    eax
+    int	    0x80
+
+error:
+    push    EXIT_FAILURE
+    jmp	    exit
+
+    include "../../../include/cstring.fasm"
+
+section ".data" writeable
+fd		dd  -1
+mixer_dev	db  "/dev/mixer", 0
+frmt		db  "Volume is %d:%d", 0xA, 0
+
+section ".bbs" writeable
+vol		rd  1
+buff_len	=   100
+buff		rb  buff_len
+
+; vim: set ts=8 sw=4 sts=4 syn=fasm sts=4:

@@ -1,0 +1,77 @@
+format ELF
+public main
+extrn open
+extrn read
+extrn write
+extrn ioctl
+extrn close
+extrn exit
+extrn printf
+
+include "../../include/common.fasm"
+include "soundcard.fasm"
+
+section ".text" executable align 16
+
+main:
+    push    0
+    push    O_RDWR
+    push    mixer_dev
+    call    open
+    lea	    esp,[esp+3*4]
+    jc	    error
+    mov	    [fd],eax
+
+    push    vol
+    MIXER_READ SOUND_MIXER_VOLUME
+    push    eax
+    call    ioctl
+    lea	    esp,[esp+3*4]
+    jc	    error
+    mov	    eax,[vol]
+
+    mov	    ebx,eax
+    and	    eax,0x000000FF
+    and	    ebx,0x0000FF00
+    shr	    ebx,8
+
+    push    ebx
+    push    eax
+    push    frmt
+    call    printf
+    lea	    esp,[esp+3*4]
+
+    push    eax
+    push    buff
+    push    STDOUT
+    call    write
+    lea	    esp,[esp+3*4]
+    jc	    error
+    
+    push    EXIT_SUCCESS
+_exit:
+    cmp	    dword[fd],-1
+    je	    .skip_close
+    push    dword[fd]
+    call    close
+    lea	    esp,[esp+4]
+    mov	    dword[fd],-1
+
+.skip_close:
+    call    exit
+
+error:
+    push    EXIT_FAILURE
+    jmp	    _exit
+
+section ".data" writeable
+fd		dd  -1
+mixer_dev	db  "/dev/mixer", 0
+frmt		db  "Volume is %d:%d", 0xA, 0
+
+section ".bbs" writeable
+vol		rd  1
+buff_len	=   100
+buff		rb  buff_len
+
+; vim: set ts=8 sw=4 sts=4 syn=fasm sts=4:
