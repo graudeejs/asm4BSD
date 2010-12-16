@@ -1,0 +1,1621 @@
+; ----------------------------------------------------------------------------
+; "THE BEER-WARE LICENSE":
+; <aldis@bsdroot.lv> wrote this file. As long as you retain this notice you
+; can do whatever you want with this stuff. If we meet some day, and you think
+; this stuff is worth it, you can buy me a beer in return. Aldis Berjoza
+; ----------------------------------------------------------------------------
+
+format ELF
+public _start
+
+include "../../include/common.fasm"
+
+
+section ".text" executable align 16
+	include "../../include/system.fasm"
+	include "../../../include/cstring.fasm"
+	include "../../../include/copy.fasm"
+
+align 16
+task_1: ; {{{1
+	sub	esp,512		; allocate 128x dword on stack
+				; assume all words are less than 129B long
+	mov	ebp,esp		; [ebp] = address of word
+				; [ebp+4] = address of dst buff, beyond wich
+				;   we Must flush dst buffer to STDOUT
+	sub	ebp,4
+
+	mov	ecx,128
+	mov	ebx,ebp
+    .zero_mem:
+	mov	dword[ebx],0
+	add	ebx,4
+	dec	ecx
+	jnz	.zero_mem
+
+	mov	esi,[mem_ptr]
+	mov	ecx,[mem_size]
+	xor	ebx,ebx		; word size counter
+
+	jmp	.read_byte	; skip NOPs
+
+    align 16
+    .read_byte:
+	cld
+	lodsb
+
+	cmp	al,'a'
+	jb	.below_a
+	cmp	al,'z'
+	ja	.above_z
+	jmp	.is_word
+
+    align 16
+    .below_a:
+	cmp	al,'A'
+	jb	.below_A
+	cmp	al,'Z'
+	ja	.above_Z
+	jmp	.is_word
+
+    align 16
+    .below_A:
+	cmp	al,'0'
+	jb	.below_0
+	cmp	al,'9'
+	ja	.above_9
+	jmp	.is_word
+
+    align 16
+    .is_word:
+	test	ebx,ebx
+	jnz	.not_begining_of_word
+	mov	[ebp],esi	; save address
+	dec	dword[ebp]
+    .not_begining_of_word:
+	inc	ebx
+	dec	ecx
+	jnz	.read_byte
+	jmp	.end_of_buff
+
+    align 16
+    .above_Z:
+    .above_z:
+    .above_9:
+    .below_0:
+    ; test_c4
+	cmp	al,0xC4		; test for potentital UTF-8 lativan character
+	jne	.test_c5
+	push	ecx
+	push	edi
+	push	eax
+	mov	al,[esi]
+	mov	ecx,lv_c4_size
+	mov	edi,lv_c4
+	jmp	.run_lv_c4_c5_test
+
+    .test_c5:
+	cmp	al,0xC5		; test for potentital UTF-8 lativan character
+	jne	.not_c4_c5_lv
+	push	ecx
+	push	edi
+	push	eax
+	mov	al,[esi]
+	mov	ecx,lv_c5_size
+	mov	edi,lv_c5
+
+    .run_lv_c4_c5_test:
+	repne	scasb
+	pop	eax
+	pop	edi
+	test	ecx,ecx
+	pop	ecx
+	jz	.not_c4_c5_lv
+
+	inc	ebx
+	dec	ecx
+	inc	esi
+	jnz	.read_byte
+	jmp	.end_of_buff
+
+    .not_c4_c5_lv:
+	push	ecx
+	push	edi
+	mov	ecx,seperators_size
+	mov	edi,seperators
+	cld
+	repne	scasb		; search for separator
+	test	ecx,ecx		; did we found seperator?
+	pop	edi
+	pop	ecx
+	jz	.is_word	; if it ain't seperator it's part of word
+
+	test	ebx,ebx
+	jz	.more_than_one_separator_in_row
+
+	inc	dword[ebp+4*ebx]    ; count word
+	xor	ebx,ebx
+
+
+    .more_than_one_separator_in_row:
+	dec	ecx
+	jnz	.read_byte
+	jmp	.end_of_buff
+
+
+    .end_of_buff:
+
+	push	words_len_count_size
+	push	words_len_count
+	push	STDOUT
+	call	write
+
+	mov	ecx,1
+    .print:
+	cmp	dword[ebp+ecx*4],0
+	jz	.skip
+	push	dword[ebp+ecx*4]
+	push	ecx
+	push	2
+	push	words_len_count2
+	push	[tmp_size]
+	push	[tmp_ptr]
+	call	strf
+
+	push	eax
+	push	[tmp_ptr]
+	push	STDOUT
+	call	write
+    .skip:
+	inc	ecx
+	cmp	ecx,128
+	jb	.print
+
+
+	add	esp,512		; deallocate space on stack
+	ret
+; 1}}}
+
+align 16
+task_4: ; {{{1
+	push	1		; reserver 4 bytes on stack, for sentence counter
+	mov	ebp,esp
+
+	mov	ecx,[mem_size]	; buffer size
+	test	ecx,ecx		; test buffer size
+	jz	.exit
+	mov	esi,[mem_ptr]	; buffer
+	xor	edx,edx		; word counter
+	xor	ebx,ebx		; word lenght counter
+
+	jmp	.read_byte	; skip NOPs
+
+    align 16
+    .read_byte:
+	cld
+	lodsb
+	cmp	al,'a'
+	jb	.below_a
+	cmp	al,'z'
+	ja	.above_z
+	inc	ebx
+	dec	ecx
+	jnz	.read_byte	; current byte in a-z range
+	jmp	.end_of_buff
+
+    align 16
+    .below_a:
+	cmp	al,'A'
+	jb	.below_A
+	cmp	al,'Z'
+	ja	.above_Z
+	inc	ebx
+	dec	ecx
+	jnz	.read_byte	; current byte in A-Z range
+	jmp	.end_of_buff
+
+    align 16
+    .below_A:
+	cmp	al,'0'
+	jb	.below_0
+	cmp	al,'9'
+	ja	.above_9
+	inc	ebx
+	dec	ecx
+	jnz	.read_byte	; current byte is 0-9 range
+	jmp	.end_of_buff
+
+    align 16
+    .above_Z:
+    .above_z:
+    .above_9:
+    .below_0:
+	cmp	al,'.'
+	je	.eos
+	cmp	al,'?'
+	je	.eos
+	cmp	al,'!'
+	jne	.neos
+    .eos:			; end of sentence
+
+	test	ebx,ebx
+	jz	.all_words_in_sentence_counted
+	inc	edx
+    .all_words_in_sentence_counted:
+
+	mov	eax,[ebp]
+	push	edx
+	push	eax
+	push	2
+	push	stats
+	push	[tmp_size]
+	push	[tmp_ptr]
+	call	strf
+
+	push	eax
+	push	[tmp_ptr]
+	push	STDOUT
+	call	write
+
+	xor	edx,edx
+	xor	ebx,ebx
+	inc	dword[ebp]
+
+	dec	ecx
+	jnz	.read_byte
+	jmp	.end_of_buff
+
+    .neos:
+	push	ecx
+	mov	ecx,seperators_size
+	mov	edi,seperators
+	cld
+	repne	scasb		; search for separator
+	mov	eax,ecx
+	pop	ecx
+
+	test	eax,eax		; did we found seperator?
+	jz	.seperator_not_found
+
+	test	ebx,ebx
+	jz	.more_than_one_separator_in_row
+
+    ; count_word
+	inc	edx
+	xor	ebx,ebx
+	dec	ecx
+	jnz	.read_byte
+	jmp	.end_of_buff
+
+    .more_than_one_separator_in_row:
+	dec	ecx
+	jnz	.read_byte
+	jmp	.end_of_buff
+
+    .seperator_not_found:
+	inc	ebx		; if it's not separator, it's part of word
+	dec	ecx
+	jnz	.read_byte
+
+    .end_of_buff:
+
+	test	ebx,ebx
+	jz	.all_words_in_sentence_counted_
+	inc	edx
+    .all_words_in_sentence_counted_:
+	test	edx,edx
+	jz	.exit
+
+	mov	eax,[ebp]
+	push	edx
+	push	eax
+	push	2
+	push	stats
+	push	[tmp_size]
+	push	[tmp_ptr]
+	call	strf
+
+	push	eax
+	push	[tmp_ptr]
+	push	STDOUT
+	call	write
+
+    .exit:
+
+	add	esp,4
+	ret
+; 1}}}
+
+align 16
+task_5: ; {{{1
+	sub	esp,8		; allocate 2x dword on stack
+	mov	ebp,esp		; [ebp] = address of word
+				; [ebp+4] = address of dst buff, beyond wich
+				;   we Must flush dst buffer to STDOUT
+	mov	eax,0x4000	; 16KB
+	mov	[mem2_size],eax
+	add	eax,0xFF	; add some more bytes to prevent buffer overflows
+	push	eax		; size
+	call	mmap_alloc
+	jc	alloc_failed
+	mov	[mem2_ptr],eax
+	mov	edi,eax
+
+	add	eax,[mem2_size]
+	mov	[ebp+4],eax
+
+	mov	esi,[mem_ptr]
+	mov	ecx,[mem_size]
+	xor	ebx,ebx		; word size counter
+	xor	edx,edx		; word size counter (for UTF-8)
+
+	jmp	.read_byte	; skip NOPs
+
+    align 16
+    .read_byte:
+	cld
+	lodsb
+
+	cmp	al,'a'
+	jb	.below_a
+	cmp	al,'z'
+	ja	.above_z
+	jmp	.is_word
+
+    align 16
+    .below_a:
+	cmp	al,'A'
+	jb	.below_A
+	cmp	al,'Z'
+	ja	.above_Z
+	jmp	.is_word
+
+    align 16
+    .below_A:
+	cmp	al,'0'
+	jb	.below_0
+	cmp	al,'9'
+	ja	.above_9
+	jmp	.is_word
+
+    align 16
+    .is_word:
+	test	ebx,ebx
+	jnz	.not_begining_of_word
+	mov	[ebp],esi	; save address
+	dec	dword[ebp]
+    .not_begining_of_word:
+	inc	ebx
+	inc	edx
+	dec	ecx
+	jnz	.read_byte
+	jmp	.end_of_buff
+
+    align 16
+    .above_Z:
+    .above_z:
+    .above_9:
+    .below_0:
+    ; test_c4
+	cmp	al,0xC4		; test for potentital UTF-8 lativan character
+	jne	.test_c5
+	push	ecx
+	push	edi
+	push	eax
+	mov	al,[esi]
+	mov	ecx,lv_c4_size
+	mov	edi,lv_c4
+	jmp	.run_lv_c4_c5_test
+
+    .test_c5:
+	cmp	al,0xC5		; test for potentital UTF-8 lativan character
+	jne	.not_c4_c5_lv
+	push	ecx
+	push	edi
+	push	eax
+	mov	al,[esi]
+	mov	ecx,lv_c5_size
+	mov	edi,lv_c5
+
+    .run_lv_c4_c5_test:
+	repne	scasb
+	pop	eax
+	pop	edi
+	test	ecx,ecx
+	pop	ecx
+	jz	.not_c4_c5_lv
+
+	test	ebx,ebx
+	jnz	.not_begining_of_word2
+	mov	[ebp],esi	; save address
+	dec	dword[ebp]
+    .not_begining_of_word2:
+	inc	ebx
+	inc	ebx
+	inc	edx
+	dec	ecx
+	inc	esi
+	jnz	.read_byte
+	jmp	.end_of_buff
+
+    .not_c4_c5_lv:
+	push	ecx
+	push	edi
+	mov	ecx,seperators_size
+	mov	edi,seperators
+	cld
+	repne	scasb		; search for separator
+	test	ecx,ecx		; did we found seperator?
+	pop	edi
+	pop	ecx
+	jz	.is_word	; if it ain't seperator it's part of word
+
+	test	ebx,ebx
+	jz	.more_than_one_separator_in_row
+
+    ; found a first seperator
+	push	eax
+	push	esi		; save current address in src buffer
+	push	ecx
+	test	edx,1
+	jz	.multiple_2
+    ; not multiple 2
+	mov	dword[edi],0x32335B1B	    ; \e[32
+	jmp	.common
+    .multiple_2:
+	mov	dword[edi],0x31335B1B	    ; \e[31
+    .common:
+	add	edi,4
+	mov	byte[edi],'m'
+	inc	edi
+
+	mov	ecx,ebx
+	mov	esi,[ebp]
+	cld
+	rep	movsb		; copy word to buffer
+
+	mov	dword[edi],0x6D305B1B	    ; \e[0m
+	add	edi,4
+
+	xor	ebx,ebx
+	xor	edx,edx
+	pop	ecx
+	pop	esi		; restore current working address in src buff
+	pop	eax
+
+    .more_than_one_separator_in_row:
+	cld
+	stosb
+	cmp	edi,[ebp+4]
+	jb	.dont_flush_buffer
+
+	; calculate size data to write to STDOUT
+	mov	eax,edi
+	sub	eax,[mem2_ptr]
+	; reset edi. Flush buffer :]
+	mov	edi,[mem2_ptr]
+	push	eax		; size
+	push	edi		; buffer
+	push	STDOUT		; file descriptor
+	call	write
+
+    .dont_flush_buffer:
+	dec	ecx
+	jnz	.read_byte
+	jmp	.end_of_buff
+
+
+    .end_of_buff:
+	cmp	edi,[mem2_ptr]
+	jna	.buff_empty
+
+	; calculate size data to write to STDOUT
+	mov	eax,edi
+	sub	eax,[mem2_ptr]
+	; reset edi. Flush buffer :]
+	mov	edi,[mem2_ptr]
+	push	eax		; size
+	push	edi		; buffer
+	push	STDOUT		; file descriptor
+	call	write
+
+    .buff_empty:
+
+	add	esp,8		; deallocate space on stack
+	ret
+; 1}}}
+
+align 16
+task_6: ; {{{1
+	sub	esp,12		; allocate 2x dword on stack
+	mov	ebp,esp		; [ebp] = address of word
+				; [ebp+8] = address of dst buff, beyond wich
+				;   we Must flush dst buffer to STDOUT
+	mov	eax,0x4000	; 16KB
+	mov	[mem2_size],eax
+	add	eax,0xFF	; add some more bytes to prevent buffer overflows
+	push	eax		; size
+	call	mmap_alloc
+	jc	alloc_failed
+	mov	[mem2_ptr],eax
+	mov	edi,eax
+
+	add	eax,[mem2_size]
+	mov	[ebp+8],eax
+
+	mov	esi,[mem_ptr]
+	mov	ecx,[mem_size]
+	xor	ebx,ebx		; word size counter
+	xor	edx,edx		; word size counter (for UTF-8)
+
+	jmp	.read_byte	; skip NOPs
+
+    align 16
+    .read_byte:
+	cld
+	lodsb
+
+	cmp	al,'a'
+	jb	.below_a
+	cmp	al,'z'
+	ja	.above_z
+	jmp	.is_word
+
+    align 16
+    .below_a:
+	cmp	al,'A'
+	jb	.below_A
+	cmp	al,'Z'
+	ja	.above_Z
+	jmp	.is_word
+
+    align 16
+    .below_A:
+	cmp	al,'0'
+	jb	.below_0
+	cmp	al,'9'
+	ja	.above_9
+	jmp	.is_word
+
+    align 16
+    .is_word:
+	test	ebx,ebx
+	jnz	.not_begining_of_word
+	mov	eax,[ebp]
+	mov	[ebp+4],eax
+	mov	[ebp],esi	; save address
+	dec	dword[ebp]
+    .not_begining_of_word:
+	inc	ebx
+	dec	ecx
+	jnz	.read_byte
+	jmp	.end_of_buff
+
+    align 16
+    .above_Z:
+    .above_z:
+    .above_9:
+    .below_0:
+	push	ecx
+	push	edi
+	mov	ecx,seperators_size
+	mov	edi,seperators
+	cld
+	repne	scasb		; search for separator
+	test	ecx,ecx		; did we found seperator?
+	pop	edi
+	pop	ecx
+	jz	.is_word	; if it ain't seperator it's part of word
+
+	test	ebx,ebx
+	jz	.more_than_one_separator_in_row
+
+    ; found a first seperator
+	push	eax
+	push	ecx
+	push	esi		; save current address in src buffer
+
+	xor	eax,eax		; eax=0 => different words
+	cmp	ebx,edx
+	jne	.different_words
+
+	push	esi		; save current address in src buffer
+	push	edi
+	mov	esi,[ebp]
+	mov	edi,[ebp+4]
+	mov	ecx,ebx
+	repe	cmpsb
+	pop	edi
+	pop	esi
+	jne	.different_words
+
+	mov	dword[edi],0x31335B1B	    ; \e[31
+	add	edi,4
+	mov	byte[edi],'m'
+	inc	edi
+	inc	eax		; eax!=0 => same word
+    .different_words:
+
+	mov	ecx,ebx
+	mov	esi,[ebp]
+	cld
+	rep	movsb		; copy word to buffer
+
+	test	eax,eax
+	jz	.different_words2
+	mov	dword[edi],0x6D305B1B	    ; \e[0m
+	add	edi,4
+    .different_words2:
+
+	mov	edx,ebx
+	xor	ebx,ebx
+	pop	esi		; restore current working address in src buff
+	pop	ecx
+	pop	eax
+
+    .more_than_one_separator_in_row:
+	cld
+	stosb
+	cmp	edi,[ebp+8]
+	jb	.dont_flush_buffer
+
+	; calculate size data to write to STDOUT
+	mov	eax,edi
+	sub	eax,[mem2_ptr]
+	; reset edi. Flush buffer :]
+	mov	edi,[mem2_ptr]
+	push	eax		; size
+	push	edi		; buffer
+	push	STDOUT		; file descriptor
+	call	write
+
+    .dont_flush_buffer:
+	dec	ecx
+	jnz	.read_byte
+	jmp	.end_of_buff
+
+    .end_of_buff:
+	cmp	edi,[mem2_ptr]
+	jna	.buff_empty
+
+	; calculate size data to write to STDOUT
+	mov	eax,edi
+	sub	eax,[mem2_ptr]
+	; reset edi. Flush buffer :]
+	mov	edi,[mem2_ptr]
+	push	eax		; size
+	push	edi		; buffer
+	push	STDOUT		; file descriptor
+	call	write
+
+    .buff_empty:
+
+	add	esp,12		; deallocate space on stack
+	ret
+; 1}}}
+
+align 16
+task_9: ; {{{1
+	mov	eax,[mem_size]
+	mov	[mem2_size],eax
+	mov	ecx,eax
+	push	eax	    ; size
+	call	mmap_alloc
+	jc	alloc_failed
+	mov	[mem2_ptr],eax
+	mov	esi,eax
+
+	push	[mem_size]
+	push	[mem_ptr]
+	push	eax
+	call	copy
+
+	jmp	.read_byte	; skip NOPs
+
+    align 16
+    .read_byte:
+	lodsb
+	cmp	al,0xC4
+	je	.test_lv_c4
+	cmp	al,0xC5
+	je	.test_lv_c5
+    .next:
+	dec	ecx
+	jnz	.read_byte
+	jmp	.exit
+
+    .test_lv_c4:
+	mov	ah,[esi]
+
+	cmp	ax,'ā'
+	cmove	ax,[aa]
+	je	.replace
+
+	cmp	ax,'ē'
+	cmove	ax,[ee]
+	je	.replace
+
+	cmp	ax,'ī'
+	cmove	ax,[ii]
+	je	.replace
+
+	cmp	ax,'ģ'
+	cmove	ax,[gj]
+	je	.replace
+
+	cmp	ax,'ķ'
+	cmove	ax,[kj]
+	je	.replace
+
+	cmp	ax,'ļ'
+	cmove	ax,[lj]
+	je	.replace
+
+	cmp	ax,'č'
+	cmove	ax,[ch_]
+	je	.replace
+
+	cmp	ax,'Ā'
+	cmove	ax,[AA]
+	je	.replace
+
+	cmp	ax,'Ē'
+	cmove	ax,[EE]
+	je	.replace
+
+	cmp	ax,'Ī'
+	cmove	ax,[II]
+	je	.replace
+
+	cmp	ax,'Ģ'
+	cmove	ax,[GJ]
+	je	.replace
+
+	cmp	ax,'Ķ'
+	cmove	ax,[KJ]
+	je	.replace
+
+	cmp	ax,'Ļ'
+	cmove	ax,[LJ]
+	je	.replace
+
+	cmp	ax,'Č'
+	cmove	ax,[CH_]
+	je	.replace
+
+	jmp	.next
+
+    .test_lv_c5:
+	mov	ah,[esi]
+
+	cmp	ax,'ū'
+	cmove	ax,[uu]
+	je	.replace
+
+	cmp	ax,'š'
+	cmove	ax,[sh]
+	je	.replace
+
+	cmp	ax,'ž'
+	cmove	ax,[zj]
+	je	.replace
+
+	cmp	ax,'ņ'
+	cmove	ax,[nj]
+	je	.replace
+
+	cmp	ax,'Ū'
+	cmove	ax,[UU]
+	je	.replace
+
+	cmp	ax,'Š'
+	cmove	ax,[SH]
+	je	.replace
+
+	cmp	ax,'Ž'
+	cmove	ax,[ZJ]
+	je	.replace
+
+	cmp	ax,'Ņ'
+	cmove	ax,[NJ]
+	je	.replace
+
+	jmp	.next
+
+    align 16
+    .replace:
+	mov	edi,esi
+	dec	edi
+	inc	esi
+	mov	[edi],ax
+	dec	ecx
+	jnz	.read_byte
+
+    .exit:
+	push	[mem2_size]
+	push	[mem2_ptr]
+	push	STDOUT
+	call	write
+
+	ret
+; 1}}}
+
+align 16
+task_10: ; {{{1
+	mov	eax,[mem_size]
+	mov	[mem2_size],eax
+	mov	ecx,eax
+
+	; allocate memory
+	inc	eax		; 1 extra byte for uint2str is needed
+	push	eax		; size
+	call	mmap_alloc
+	jc	alloc_failed
+	mov	[mem2_ptr],eax
+
+
+	mov	edi,eax
+	mov	esi,[mem_ptr]
+	xor	edx,edx
+	jmp	.load_byte	; skip NOPs
+
+    align 16
+    .load_byte:
+	cld
+	lodsb
+	cmp	al,0x20
+	je	.is_space
+	test	edx,edx
+	jnz	.non_space_after_spaces
+	cld
+	stosb
+	dec	ecx
+	jnz	.load_byte
+	jmp	.skip_exit_test
+
+    .is_space:
+	inc	edx
+	dec	ecx
+	jnz	.load_byte
+	jmp	.exit
+
+    .non_space_after_spaces:
+	cmp	edx,1
+	jne	.more_than_one_space
+	xor	edx,edx
+	mov	byte[edi],0x20
+	inc	edi
+	cld
+	stosb
+	dec	ecx
+	jnz	.load_byte
+	jmp	.skip_exit_test
+
+    .more_than_one_space:
+	mov	ebx,eax		; save eax
+	push	edx
+	push	0xF		; there will be enought space no matter what
+	push	edi
+	call	uint2str
+	xor	edx,edx
+	add	edi,eax
+	mov	eax,ebx		; restore eax
+	cld
+	stosb
+	dec	ecx
+	jnz	.load_byte
+	jmp	.skip_exit_test
+
+    .exit:
+	test	edx,edx
+	jz	.skip_exit_test
+	push	edx
+	push	0xF		; there will be enought space no matter what
+	push	edi
+	call	uint2str
+	add	edi,eax
+    .skip_exit_test:
+	mov	eax,edi
+	mov	ebx,[mem2_ptr]
+	sub	eax,ebx		; size of buffer filled with data
+
+	mov	byte[edi],0xA
+	inc	eax
+
+	push	eax	; len
+	push	ebx	; buffer
+	push	STDOUT	; fd
+	call	write
+
+	ret
+;}}}
+
+align 16
+task_11: ; {{{1
+	mov	ebp,esp
+
+	mov	ecx,[mem_size]	; buffer size
+	test	ecx,ecx		; test buffer size
+	jz	.exit
+	mov	esi,[mem_ptr]	; buffer
+	xor	edx,edx		; word counter
+	xor	ebx,ebx		; word lenght counter
+
+	jmp	.read_byte	; skip NOPs
+
+    align 16
+    .read_byte:
+	cld
+	lodsb
+	cmp	al,'a'
+	jb	.below_a
+	cmp	al,'z'
+	ja	.above_z
+	inc	ebx
+	dec	ecx
+	jnz	.read_byte	; current byte in a-z range
+	jmp	.end_of_buff
+
+    align 16
+    .below_a:
+	cmp	al,'A'
+	jb	.below_A
+	cmp	al,'Z'
+	ja	.above_Z
+	inc	ebx
+	dec	ecx
+	jnz	.read_byte	; current byte in A-Z range
+	jmp	.end_of_buff
+
+    align 16
+    .below_A:
+	cmp	al,'0'
+	jb	.below_0
+	cmp	al,'9'
+	ja	.above_9
+	inc	ebx
+	dec	ecx
+	jnz	.read_byte	; current byte is 0-9 range
+	jmp	.end_of_buff
+
+    align 16
+    .above_Z:
+    .above_z:
+    .above_9:
+    .below_0:
+	push	ecx
+	mov	ecx,seperators_size
+	mov	edi,seperators
+	cld
+	repne	scasb		; search for separator
+	mov	eax,ecx
+	pop	ecx
+
+	test	eax,eax		; did we found seperator?
+	jz	.seperator_not_found
+
+	test	ebx,ebx
+	jz	.more_than_one_separator_in_row
+
+    ; count_word
+	inc	edx
+	xor	ebx,ebx
+	dec	ecx
+	jnz	.read_byte
+	jmp	.end_of_buff
+
+    .more_than_one_separator_in_row:
+	dec	ecx
+	jnz	.read_byte
+	jmp	.end_of_buff
+
+    .seperator_not_found:
+	inc	ebx		; if it's not separator, it's part of word
+	dec	ecx
+	jnz	.read_byte
+
+    .end_of_buff:
+
+	test	ebx,ebx
+	jz	.all_words_in_sentence_counted_
+	inc	edx
+    .all_words_in_sentence_counted_:
+
+	push	edx
+	push	1
+	push	words_in_file
+	push	[tmp_size]
+	push	[tmp_ptr]
+	call	strf
+
+	push	eax
+	push	[tmp_ptr]
+	push	STDOUT
+	call	write
+
+    .exit:
+	ret
+; 1}}}
+
+align 16
+task_13: ; {{{1
+	push	0		; reserver 2xdword on stack
+	push	0
+	mov	ebp,esp		; [ebp] - sum of numbers
+				; [ebp+4] - address of number
+	mov	ecx,[mem_size]	; buffer size
+	test	ecx,ecx		; test buffer size
+	jz	.exit
+	mov	esi,[mem_ptr]	; buffer
+	xor	edx,edx		; counts digits only
+	xor	ebx,ebx		; counts everything, that's not sepparator
+
+	jmp	.read_byte	; skip NOPs
+
+    align 16
+    .read_byte:
+	cld
+	lodsb
+	cmp	al,'a'
+	jb	.below_a
+	cmp	al,'z'
+	ja	.above_z
+	inc	ebx
+	dec	ecx
+	jnz	.read_byte	; current byte in a-z range
+	jmp	.end_of_buff
+
+    align 16
+    .below_a:
+	cmp	al,'A'
+	jb	.below_A
+	cmp	al,'Z'
+	ja	.above_Z
+	inc	ebx
+	dec	ecx
+	jnz	.read_byte	; current byte in A-Z range
+	jmp	.end_of_buff
+
+    align 16
+    .below_A:
+	cmp	al,'0'
+	jb	.below_0
+	cmp	al,'9'
+	ja	.above_9
+	test	edx,edx
+	jnz	.not_first_digit
+    .is_sign:
+	mov	[ebp+4],esi
+	dec	dword[ebp+4]
+    .not_first_digit:
+	inc	ebx
+	inc	edx
+	dec	ecx
+	jnz	.read_byte	; current byte is 0-9 range
+	jmp	.end_of_buff
+
+    align 16
+    .below_0:
+	cmp	al,'-'
+	je	.sign
+	cmp	al,'+'
+	jne	.not_sign
+    .sign:
+	test	edx,edx
+	jz	.is_sign
+	inc	edx
+	dec	ecx
+	jnz	.read_byte
+	jmp	.end_of_buff
+
+
+    align 16
+    .above_Z:
+    .above_z:
+    .above_9:
+    .not_sign:
+	push	ecx
+	mov	ecx,seperators_size
+	mov	edi,seperators
+	cld
+	repne	scasb		; search for separator
+	mov	eax,ecx
+	pop	ecx
+
+	test	eax,eax		; did we found seperator?
+	jz	.seperator_not_found
+
+	test	ebx,ebx
+	jz	.more_than_one_separator_in_row
+
+	cmp	ebx,edx
+	jne	.not_a_number
+
+	push	eax
+
+	mov	eax,[ebp+4]
+	mov	edi,esi		; edi is unused
+	sub	edi,eax
+	push	edi		; size
+	push	eax		; number address
+	call	str2int
+	jc	int_overflow
+	add	dword[ebp],eax
+
+	pop	eax
+
+    .not_a_number:
+	xor	ebx,ebx
+	xor	edx,edx
+	dec	ecx
+	jnz	.read_byte
+	jmp	.end_of_buff
+
+    .more_than_one_separator_in_row:
+	dec	ecx
+	jnz	.read_byte
+	jmp	.end_of_buff
+
+    .seperator_not_found:
+	inc	ebx		; if it's not separator, it's part of word
+	dec	ecx
+	jnz	.read_byte
+
+    .end_of_buff:
+
+	test	ebx,ebx
+	jz	.all_words_in_sentence_counted_
+	inc	edx
+    .all_words_in_sentence_counted_:
+
+	mov	eax,[ebp]
+	push	eax
+	push	1
+	push	numsum_in_file
+	push	[tmp_size]
+	push	[tmp_ptr]
+	call	strf
+
+	push	eax
+	push	[tmp_ptr]
+	push	STDOUT
+	call	write
+
+    .exit:
+	add	esp,8
+	ret
+; 1}}}
+
+align 16
+task_14: ; {{{1
+	push	0		; reserver dword on stack
+	mov	ebp,esp		; [ebp] - number counterpor
+	mov	ecx,[mem_size]	; buffer size
+	test	ecx,ecx		; test buffer size
+	jz	.exit
+	mov	esi,[mem_ptr]	; buffer
+	xor	edx,edx		; counts digits only
+	xor	ebx,ebx		; counts everything excep separators
+
+	jmp	.read_byte	; skip NOPs
+
+    align 16
+    .read_byte:
+	cld
+	lodsb
+	cmp	al,'a'
+	jb	.below_a
+	cmp	al,'z'
+	ja	.above_z
+	inc	ebx
+	dec	ecx
+	jnz	.read_byte	; current byte in a-z range
+	jmp	.end_of_buff
+
+    align 16
+    .below_a:
+	cmp	al,'A'
+	jb	.below_A
+	cmp	al,'Z'
+	ja	.above_Z
+	inc	ebx
+	dec	ecx
+	jnz	.read_byte	; current byte in A-Z range
+	jmp	.end_of_buff
+
+    align 16
+    .below_A:
+	cmp	al,'0'
+	jb	.below_0
+	cmp	al,'9'
+	ja	.above_9
+    .is_sign:
+	inc	ebx
+	inc	edx
+	dec	ecx
+	jnz	.read_byte	; current byte is 0-9 range
+	jmp	.end_of_buff
+
+    align 16
+    .below_0:
+	cmp	al,'-'
+	je	.sign
+	cmp	al,'+'
+	jne	.not_sign
+    .sign:
+	test	edx,edx
+	jz	.is_sign
+	inc	edx
+	dec	ecx
+	jnz	.read_byte
+	jmp	.end_of_buff
+
+    align 16
+    .not_sign:
+    .above_Z:
+    .above_z:
+    .above_9:
+	push	ecx
+	mov	ecx,seperators_size
+	mov	edi,seperators
+	cld
+	repne	scasb		; search for separator
+	mov	eax,ecx
+	pop	ecx
+
+	test	eax,eax		; did we found seperator?
+	jz	.seperator_not_found
+
+	test	ebx,ebx
+	jz	.more_than_one_separator_in_row
+
+    ; count_word
+	cmp	ebx,edx
+	jne	.not_a_number
+	inc	dword[ebp]
+    .not_a_number:
+	xor	ebx,ebx
+	xor	edx,edx
+	dec	ecx
+	jnz	.read_byte
+	jmp	.end_of_buff
+
+    .more_than_one_separator_in_row:
+	dec	ecx
+	jnz	.read_byte
+	jmp	.end_of_buff
+
+    .seperator_not_found:
+	inc	ebx		; if it's not separator, it's part of word
+	dec	ecx
+	jnz	.read_byte
+
+    .end_of_buff:
+
+	test	ebx,ebx
+	jz	.all_words_in_sentence_counted_
+	inc	edx
+    .all_words_in_sentence_counted_:
+
+	mov	eax,[ebp]
+	push	eax
+	push	1
+	push	numbers_in_file
+	push	[tmp_size]
+	push	[tmp_ptr]
+	call	strf
+
+	push	eax
+	push	[tmp_ptr]
+	push	STDOUT
+	call	write
+
+    .exit:
+	add	esp,4
+	ret
+; 1}}}
+
+align 16
+_start: ; {{{1
+	mov	ax,ds
+	mov	es,ax
+
+
+	; get argc & argv
+	pop	ecx
+	mov	[argc],ecx
+	mov	[argv],esp
+
+
+	; allocate temp memory
+	mov	eax,256
+	mov	dword[tmp_size],eax
+	push	eax
+	call	mmap_alloc
+	jc	alloc_failed
+	mov	[tmp_ptr],eax
+
+	cmp	ecx,3
+	jne	show_usage
+
+
+	mov	eax,[argv]
+	mov	eax,[eax+8]
+	push	3	    ; max lenght of buffer
+	push	eax	    ; buffer
+	call	str2uint
+	jc	invalid_NumOfTask
+	dec	eax
+	js	invalid_NumOfTask
+	cmp	eax,13
+	jg	invalid_NumOfTask
+	mov	byte[task_no],al	; save task
+
+
+	; open file
+	lea	edx,[esp+4]
+	mov	edx,[edx]
+	push	0	    ; flags
+	push	O_RDONLY    ; mode
+	push	edx	    ; file name
+	call	open
+	jc	file_open_failed
+	mov	[fd],eax    ; save file descriptor
+
+	; get info about file
+	push	file_stat   ; ptr to stat structure
+	push	eax	    ; file descriptor
+	call	fstat
+	jc	file_stat_failed
+	mov	eax,[file_stat.st_size]
+
+	; limit file size to 5MB max
+	cmp	eax,5242880
+	ja	file_too_big
+
+	; map file into memory
+	mov	[mem_size],eax
+	push	0	    ; offset
+	push	0	    ; padding
+	push	[fd]	    ; file descriptor
+	push	MAP_SHARED  ; flags
+	push	PROT_READ   ; protection
+	push	eax	    ; file size
+	push	0	    ; preffered address
+	call	mmap
+	jc	file_map_failed
+	mov	[mem_ptr],eax	; save address where file is mapped
+
+	; call function using vector
+	movzx	eax,byte[task_no]
+	mov	ebx,eax
+
+	; print task number
+	inc	eax
+	push	eax
+	push	1
+	push	uzd
+	push	[tmp_size]
+	push	[tmp_ptr]
+	call	strf
+	push	eax
+	push	[tmp_ptr]
+	push	STDOUT
+	call	write
+
+	; call task <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	call	[vectors+ebx*4]
+
+
+; before jumping here push exit code to stack
+	push	0
+_exit:
+	; test if file is closed?
+	mov	eax,[fd]
+	cmp	eax,-1
+	je	.file_closed
+	push	eax
+	call	close
+    .file_closed:
+
+	; is tmp memory freed?
+	mov	eax,[tmp_ptr]
+	test	eax,eax
+	je	.tmp_is_free
+	push	[tmp_size]
+	push	eax
+	call	munmap
+    .tmp_is_free:
+
+	; is mem memory freed?
+	mov	eax,[mem_ptr]
+	test	eax,eax
+	je	.mem_is_free
+	push	[mem_size]
+	push	eax
+	call	munmap
+    .mem_is_free:
+
+	; is mem2 memory freed?
+	mov	eax,[mem2_ptr]
+	test	eax,eax
+	je	.mem2_is_free
+	push	[mem2_size]
+	push	eax
+	call	munmap
+    .mem2_is_free:
+
+	call	exit	    ; Game Over
+
+
+
+show_usage:
+	mov	eax,[argv]
+	mov	eax,[eax]
+	push	eax
+	push	eax
+	push	2
+	push	usage
+	push	[tmp_size]
+	mov	edx,[tmp_ptr]
+	push	edx
+	call	strf
+
+	push	eax
+	push	edx
+	push	STDOUT
+	call	write
+
+	push	0
+	jmp	_exit
+
+alloc_failed:
+	push	err_alloc_size
+	push	err_alloc
+	push	STDERR
+	call	write
+	push	1
+	jmp	_exit
+
+file_map_failed:
+	push	err_fmap_size
+	push	err_fmap
+	push	STDERR
+	call	write
+	push	1
+	jmp	_exit
+
+file_open_failed:
+	push	err_fopen_size
+	push	err_fopen
+	push	STDERR
+	call	write
+	push	1
+	jmp	_exit
+
+file_stat_failed:
+	push	err_stat_size
+	push	err_stat
+	push	STDERR
+	call	write
+	push	1
+	jmp	_exit
+
+file_too_big:
+	push	err_file_big_size
+	push	err_file_big
+	push	STDERR
+	call	write
+	push	1
+	jmp	_exit
+
+invalid_NumOfTask:
+	push	err_task_size
+	push	err_task
+	push	STDERR
+	call	write
+	push	1
+	jmp	_exit
+
+int_overflow:
+	push	err_int_overflow_size
+	push	err_int_overflow
+	push	STDERR
+	call	write
+	push	1
+	jmp	_exit
+
+uint_overflow:
+	push	err_uint_overflow_size
+	push	err_uint_overflow
+	push	STDERR
+	call	write
+	push	1
+	jmp	_exit
+
+; 1}}}
+
+
+section '.data' writeable align 16 ; {{{1
+vectors			dd	task_1, _exit, _exit, task_4, task_5
+			dd	task_6, _exit, _exit, task_9, task_10
+			dd	task_11, _exit, task_13, task_14
+argc			dd	0
+argv			dd	NULL
+mem_size		dd	0
+mem_ptr			dd	NULL
+mem2_size		dd	0
+mem2_ptr		dd	NULL
+tmp_size		dd	0
+tmp_ptr			dd	NULL
+fd			dd	-1
+
+file_stat		s_stat
+
+task_no			db	0
+created_by		db	"Created by Aldis Berjoza. 2010", 0xA, 0
+usage			db	"%s usage:", 0xA, "  %s filename NumOfTask", 0xA, 0
+err_fopen		db	"ERR: can't open file", 0xA
+err_fopen_size		=	$-err_fopen
+err_alloc		db	"ERR: can't allocate memory", 0xA
+err_alloc_size		=	$-err_alloc
+err_fmap		db	"ERR: failed to map file into memory", 0xA
+err_fmap_size		=	$-err_alloc
+err_stat		db	"ERR: stat failed", 0xA
+err_stat_size		=	$-err_stat
+err_file_big		db	"ERR: file too big", 0xA
+err_file_big_size	=	$-err_file_big
+err_task		db	"ERR: invalid NumOfTask. Must be in range (1-14)", 0xA
+err_task_size		=	$-err_task
+err_int_overflow	db	"ERR: signed integer overflow", 0xA
+err_int_overflow_size	=	$-err_int_overflow
+err_uint_overflow	db	"ERR: unsigned integer overflow", 0xA
+err_uint_overflow_size	=	$-err_uint_overflow
+seperators		db	' ,.', 0xA, 0xD, '!?"', 0x9, '()[]<>{};:=*+-\|/~@#$%^&', 0
+seperators_size		=	$-seperators
+
+; UTF-8 latvian characters "C4 ??"
+lv_c4			db	0x80, 0x81, 0x8C, 0x8D, 0x92, 0x93, 0xA2, 0xA3
+			db	0xAA, 0xAB, 0xB6, 0xB7, 0xBB, 0xBC
+lv_c4_size		=	$-lv_c4
+
+; UTF-8 latvian characters "C5 ??"
+lv_c5			db	0x85, 0x86, 0xA0, 0xA1, 0xAA, 0xAB, 0xBD, 0xBE
+lv_c5_size		db	$-lv_c5
+
+uzd			db	"Task %u", 0xA, "===========================", 0xA, 0
+words_in_file		db	"Words: %u", 0xA, 0
+numbers_in_file		db	"Numbers: %u", 0xA, 0
+numsum_in_file		db	"Sum of numbers: %d", 0xA, 0
+stats			db	"%u : %u.", 0xA, 0
+words_len_count		db	"Lenght Word count",0xA
+words_len_count_size	=	$-words_len_count
+words_len_count2	db	"   %u    \t%u\n",0
+
+ee			dw	'ee'
+uu			dw	'uu'
+ii			dw	'ii'
+aa			dw	'aa'
+sh			dw	'sh'
+gj			dw	'gj'
+kj			dw	'kj'
+lj			dw	'lj'
+zj			dw	'zj'
+ch_			dw	'ch'
+nj			dw	'nj'
+
+EE			dw	'EE'
+UU			dw	'UU'
+II			dw	'II'
+AA			dw	'AA'
+SH			dw	'SH'
+GJ			dw	'GJ'
+KJ			dw	'KJ'
+LJ			dw	'LJ'
+ZJ			dw	'ZJ'
+CH_			dw	'CH'
+NJ			dw	'NJ'
+
+; 1}}}
+
+; vim: set ts=8 sw=4 sts=4 syn=fasm:

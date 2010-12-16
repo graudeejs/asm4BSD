@@ -1,0 +1,43 @@
+Tranzistors
+Vikipēdijas  raksts raksts
+
+Tranzistors (angļu: transistor, no transfer (pārnest) + resistor (rezistors)) - pusvadītāju elements, kurš tiek izmantots elektronikā signālu pastiprināšanai, modulēšanai, ģenerēšanai u. c.
+
+Izšķir tranzistorus ar divām pusvadītāju pārejām (bipolārie tranzistori jeb tā saucamie pnp un npn tranzistori) un lauktranzistorus (FET).
+
+Bipolārajiem tranzistoriem parasti ir 3 izvadi (emiters,bāze un kolektors), lai arī ir iespējami optiskie tranzistori, kur vadības elektroda vietā ir optiskā ieeja. Ir arī speciāli daudzemiteru tranzistori ar papildus emiteru izvadiem. Augstfrekvences tranzistoriem bieži ir ceturtais izvads, kas savienots ar tā korpusu. Lauktranzistoru 3 izvadus sauc par izteci, noteci un aizvaru.
+
+
+
+Vēsture
+
+Lauktranzistora darbības princips pirmo reizi tika patentēts 1928. gadā Vācijā (Jūlijs Edgars Lilienfelds). Lauktranzistoru kā reālu ierīci pirmais patentēja vācu fiziķis Oskars Heils 1934. gadā. Lai arī lauktranzistora darbības princips ir daudz vienkāršāks nekā bipolārajam tranzistoram, tikai 1960. gadā tika izgatavots tāda tipa MOS (Metal-Oxide-Semiconductor jeb Metāls-Oksīds-Pusvadītājs) tranzistors, kādi tagad ir mūsdienu datoru darbības pamatā, un tikai 20. gadsimta 90. gados MOS tehnoloģija sāka dominēt pār bipolāro tehnoloģiju.
+
+Pasaulē pirmais bipolārais tranzistors tika demonstrēts 1947. gada 16. decembrī Bella laboratorijās ASV. Tā izgudrotāji bija Viljams Šoklijs, Džons Bārdins un Valters Brateins. Visi trīs 1956. gadā par to saņēma Nobela prēmiju fizikā. Tā bija kārtējā revolūcija elektronikā, kas vēlāk ļāva atteikties no vakuuma elektronu lampām gandrīz visās elektronikas sfērās, radīt uz tranzistoru pamata arvien sarežģītākas integrētās shēmas un attīstīt datoru tehnoloģijas.
+
+Sākumā jaunās ierīces dēvēja par pusvadītāju triodēm vai kristāltriodēm, bet vēlāk Bella laboratorijās tika nolemts tās saukt par tranzistoriem, kas burtiski nozīmēja pārnesamu vai maināmu pretestību.
+
+
+
+Tranzistora darbības princips
+
+Tranzistorā strāva divu elektrodu ķēdē tiek vadīta ar trešā elektroda palīdzību. Neliela strāvas (bipolārajā tranzistorā) vai sprieguma (lauktranzistorā) izmaiņa uz vadības elektroda (bāzes vai aizvara) izsauc lielas strāvas vai sprieguma izmaiņas vadāmajā ķēdē. Tādējādi iespējams pastiprināt elektrisko signālu, kā arī izmantot tranzistoru par bezkontakta pārslēgu.
+
+
+
+Tranzistoru tipi
+
+Tranzistori galvenokārt iedalās bipolārajos tranzistoros un lauktranzistoros. Baz tam ir dažādi speciāli tranzistoru tipi - vienpārejas tranzistori, fototranzistori, saliktie tranzistori (sk. Dārlingtona tranzistors), jonjutīgie lauktranzistori un daudzi citi.
+Pēc izmantojamā pusvadītāju materiāla tranzistori iedalās germānija un silīcija tranzistoros. Vēsturiski pirmie bija germānija tranzistori, kuri mūsdienās vairs tikpat kā netiek izmantoti. Kā pusvadītāju materiālus tranzistoru izgatavošanai lieto arī gallija arsenīdu GaAs, silīcija un germānija sakausējumu, pusvadītāju polimērus. Tiek eksperimentēts ar oglekļa nanocaurulīšu izmantošanu tranzistoru izgatavošanā.
+
+Pēc tranzistoru izpildījuma izšķir diskrētos (korpusa un bezkorpusa) tranzistorus un tranzistorus, kas ietilpst integrēto shēmu sastāvā. Diskrētos korpusa tranzistorus savukārt iedala pēc korpusa veida - ir metāla, keramiskie, plastmasas, stikla korpusi; virsmas montāžas korpusi; jaudīgu tranzistoru korpusi, kas paredzēti siltuma aizvadīšanas radiatoru stiprināšanai.
+
+Svarīgs tranzistora parametrs ir tā jauda - ir mazjaudīgi tranzistori, kas var izkliedēt milivatos mērāmu jaudu, vidējas jaudas tranzistori (ar 0,1 līdz 1 vata jaudu) un lieljaudas tranzistori ar jaudu virs 1 vata. Jo jaudīgāks tranzistors, jo lielāki ir tā izmēri.
+
+Dažādi tranzistori var darboties dažādās frekvencēs. Izšķir zemfrekvences (lieto skaņas pastiprināšanā, spriegumu stabilizēšanā) un augstfrekvences (lieto radiotehnikā) tranzistorus.
+
+
+
+Tranzistoru praktiskā pielietošana
+
+Tranzistorus lieto kā elektroniskos bezkontakta pārslēgus dažādos barošanas avotos un loģiskajās shēmās, kā skaņas vai radiofrekvenču signālu pastiprinātājus, dažādu signālu pārveidošanai un apstrādei elektroniskajās shēmās. Visvairāk tranzistorus izmanto kā integrēto shēmu elementus (pasaulē ik sekundi tiek saražots ap pusmiljards mikroskopisku tranzistoru).
