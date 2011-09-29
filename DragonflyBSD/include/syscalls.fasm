@@ -638,7 +638,7 @@ end if
 
 
 ;==============================================
-; Converted with FreeBSD_syscalls4fasm.pl v1.0.5
-; http://aldis.git.bsdroot.lv/asm4BSD/
+; Converted with FreeBSD_syscalls4fasm.pl v1.0.6
+; https://github.com/graudeejs/asm4BSD/
 
 ; vim: set ts=8 sw=8 syn=fasm:

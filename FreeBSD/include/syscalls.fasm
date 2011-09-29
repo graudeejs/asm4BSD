@@ -1,4 +1,4 @@
-;  $FreeBSD: src/sys/kern/syscalls.master,v 1.259.2.3.2.1 2010/06/14 02:09:06 kensmith Exp $
+;  $FreeBSD: src/sys/kern/syscalls.master,v 1.259.2.4.2.1 2010/12/21 17:09:25 kensmith Exp $
 ;	from: @(#)syscalls.master	8.2 (Berkeley) 1/13/94
 ;
 ; System call name/number master file.
@@ -503,7 +503,9 @@ if defined COMPAT4
 end if
 	SYS_KLDSYM                     = 337 ; int kldsym(int fileid, int cmd, void *data);
 	SYS_JAIL                       = 338 ; int jail(struct jail *jail);
-	;SYS_PIOCTL                    = 339 ; UNIMPL
+if defined NOSTD
+	SYS_NNPFS_SYSCALL              = 339 ; int nnpfs_syscall(int operation, char *a_pathP, int a_opcode, void *a_paramsP, int a_followSymlinks);
+end if
 	SYS_SIGPROCMASK                = 340 ; int sigprocmask(int how, const sigset_t *set, sigset_t *oset);
 	SYS_SIGSUSPEND                 = 341 ; int sigsuspend(const sigset_t *sigmask);
 if defined COMPAT4
@@ -547,7 +549,9 @@ end if
 	SYS___SETUGID                  = 374 ; int __setugid(int flag);
 	;SYS_NFSCLNT                   = 375 ; UNIMPL
 	SYS_EACCESS                    = 376 ; int eaccess(char *path, int flags);
-	;SYS_AFS_SYSCALL               = 377 ; UNIMPL
+if defined NOSTD
+	SYS_AFS3_SYSCALL               = 377 ; int afs3_syscall(long syscall, long parm1, long parm2, long parm3, long parm4, long parm5, long parm6);
+end if
 	SYS_NMOUNT                     = 378 ; int nmount(struct iovec *iovp, unsigned int iovcnt, int flags);
 	;SYS_KSE_EXIT                  = 379 ; UNIMPL
 	;SYS_KSE_WAKEUP                = 380 ; UNIMPL
@@ -712,7 +716,7 @@ end if
 
 
 ;==============================================
-; Converted with FreeBSD_syscalls4fasm.pl v1.0.5
-; http://aldis.git.bsdroot.lv/asm4BSD/
+; Converted with FreeBSD_syscalls4fasm.pl v1.0.6
+; https://github.com/graudeejs/asm4BSD/
 
 ; vim: set ts=8 sw=8 syn=fasm:

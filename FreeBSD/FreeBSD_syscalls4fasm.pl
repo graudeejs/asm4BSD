@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 # ----------------------------------------------------------------------------
 # "THE BEER-WARE LICENSE":
-# <aldis@bsdroot.lv> wrote this file. As long as you retain this notice you
+# <graudeejs@gmail.com> wrote this file. As long as you retain this notice you
 # can do whatever you want with this stuff. If we meet some day, and you think
 # this stuff is worth it, you can buy me a beer in return. Aldis Berjoza
 # ----------------------------------------------------------------------------
@@ -11,7 +11,7 @@ package FreeBSD_syscalls4fasm;
 use warnings;
 use strict;
 
-my $version = "1.0.5";
+my $version = "1.0.6";
 
 my $masterfile;
 
@@ -89,7 +89,7 @@ close(MF);
 
 print "\n\n;==============================================\n";
 print "; Converted with FreeBSD_syscalls4fasm.pl v$version\n";
-print "; http://aldis.git.bsdroot.lv/asm4BSD/\n\n";
+print "; https://github.com/graudeejs/asm4BSD/\n\n";
 print "; vim: set ts=8 sw=8 syn=fasm:\n";
 
 exit;
