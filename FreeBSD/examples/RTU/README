@@ -1,0 +1,61 @@
+This is what I did for assembler practical work.
+
+I was supposed to write only 1 task, but I did 9 of possible 14.
+
+All the tasks:
+	In all tasks read file from disk, and print output to screen.
+
+	T1) Output sorted info of word length.
+
+		Length		Word Count
+		1		12
+		2		5
+		...		...
+
+	T2) Output statistics about words
+
+		<word> :	<count>
+		<word2> :	<count>
+		...
+
+	T3) Output dictionary from words
+
+		A - <list of words beginning with a>.
+		B - <list of words beginning with b>.
+		...
+
+	T4) Find word count in each sentence. Output format:
+
+		<1. sentence> :		<word count>
+		<2. sentence> :		<word count>
+		...
+
+	T5) Output all words with length 2, 4, ..., 2n in read and all other
+		words in green color
+
+	T6) Delete all duplicate words. For example "the the" => "the". All
+		changes show in red color
+
+	T7) Find all words that contain both characters and digits (for example
+		"User1"), also print count of such words (for example how many
+		times did there was "User1" in text"
+
+	T8) Change word order in sentence. Sort words by length
+
+	T9) Substitute all Latvian specific characters such as ā, š,... with
+		latin combinations (aa, sh...)
+	
+	T10) Substitute repeated spaces with their count. For example
+		"this is  test   string" => "this is2test3string"
+	
+	T11) Count words in file.
+
+	T12) Change order of words in each sentence
+
+	T13) File contains only numbers. Count sum of all numbers.
+
+	T14) File contains both numbers and words. Return count of numbers.
+
+
+
+Well it was something like that :)
