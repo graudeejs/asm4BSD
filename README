@@ -1,1 +1,10 @@
+This project was started as part of my University practical work in assembler.
+I didn't want to code in DOS and received permission to code in Unix.
+
+It was very fun.
+
+Here you can find scripts to generate *BSD syscall include files for flat assembler.
+Also in FreeBSD directory you will see lots of sample code :)
+
+
 Currently Examples are for 32bit architecture only
