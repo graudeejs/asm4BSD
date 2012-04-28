@@ -11,7 +11,7 @@ EXIT_SUCCESS	= 0
 
 section '.text' executable
 public _start
-_start:	
+_start:
 	pop	ecx
 	; while I won't use them, I will save argc and argv
 	mov	[argc],ecx	; save argc
@@ -34,7 +34,7 @@ print_cmdl:
 	xor	eax,eax		; search for 0x0
 
 	cld			; make usre we search left to right
-	; how long is this commang line argument?
+	; how long is this command line argument?
 	repnz	scasb
 	sub	edx,ecx
 	mov	ecx,edx
